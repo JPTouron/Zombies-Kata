@@ -6,6 +6,10 @@ Source: [https://github.com/ardalis/kata-catalog](https://github.com/ardalis/kat
 
 This kata constructs a model for a zombie boardgame's survivors. If you enjoy the kata, you may find the Zombicide series of boardgames fun as well. Complete each step before reading ahead to the next one. Revise your design to react to new requirements as they appear.
 
+### Optional challenge
+
+Do not read all the steps at once, try completing a single step before learning about the next one
+
 ## Step One: Survivors
 
 The zombie apocalypse has occurred. You must model a Survivor in this harsh world. Sometimes, they get hurt, and even die.
