@@ -1,0 +1,118 @@
+@startuml "Zombies Class diagram"
+
+title "Zombies Class diagram"
+
+
+class Equipment
+{
+    +ctor(string Name)
+    __
+    +string Name {get;}
+}
+
+interface IEquippable
+{
+    +void AddEquipment(Equipment equipment)
+}
+
+class EquipmentInventory
+{
+    -int capacity
+    -IList<Equipment> items;
+    ..
+    +ctor()
+    __
+    +void AddEquipment(Equipment equipment)
+    +void ReduceCapacityBy(int reduction)
+}
+
+note left
+    manages all the equipment
+    a Survivor may carry
+    In Hand or In Reserve
+
+    ""ReduceCapacityBy(...)""
+    //would loose a randome equipment
+end note
+
+Equipment *-- EquipmentInventory
+IEquippable <|-left-EquipmentInventory
+
+enum State{
+    +Alive
+    +Dead
+}
+
+interface IHealth
+{
+    +State CurrentState  { get; }
+    +int Wounds { get;}
+    +Wound(int inflictedWounds)
+}
+
+class Health
+{
+    +ctor()
+    __
+    +State CurrentState { get; private set; }
+    +int Wounds { get; private set;}
+    +Wound(int inflictedWounds)
+}
+
+note right
+    "" Wound() ""
+    "" if inflictedWounds < 2 => Dead""
+end note
+
+State *-- Health
+IHealth <|- Health
+
+enum Hand {
+    +Left
+    +Right
+}
+
+class Survivor
+{
+    -EquipmentInventory inventory
+    -const int capacityReductionPerWound = 1
+    ..
+    +ctor(string name)
+    __
+    +string Name {get;}
+    +int RemainingActions  { get; }
+    --
+    +State CurrentState  { get; }
+    +int Wounds { get; }
+    ..
+    +Wound(int inflictedWounds)
+    --
+    +void SetHandEquipment(Hand hand, Equipment equipment);
+    +void AddEquipment(Equipment equipment);
+    ..
+    +Equipment RightHandEquip {get;}
+    +Equipment LeftHandEquip {get;}
+}
+
+note right
+    // Survivor would be initialized with: zero wounds, //
+    // three remaining actions, Alive CurrentState //
+
+    "" SetHandEquipment(...) ""
+    // sets equipment on left or right hand, by means of **HandEquipment** //
+
+    "" AddEquipment(..) ""
+    // equipmentInventory.Add...//
+end note
+
+Health +--- Survivor
+Hand *-up- Survivor
+IHealth <|-Survivor
+IEquippable <|---Survivor
+
+
+
+EquipmentInventory +-- Survivor
+
+
+@enduml

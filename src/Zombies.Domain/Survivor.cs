@@ -1,37 +1,30 @@
-﻿namespace Zombies.Domain
+﻿using static Zombies.Domain.IHealth;
+
+namespace Zombies.Domain
 {
-    public class Survivor
+    public class Survivor : IHealth
     {
+        private IHealth health;
+
         public Survivor(string name)
         {
             Name = name;
-            Wounds = 0;
             RemainingActions = 3;
-            CurrentState = State.Alive;
-        }
 
-        public enum State
-        {
-            Alive,
-            Dead
+            health = new Health();
         }
-
-        public State CurrentState { get; private set; }
 
         public string Name { get; }
 
         public int RemainingActions { get; }
 
-        public int Wounds { get; private set; }
+        public State CurrentState => health.CurrentState;
+
+        public int Wounds => health.Wounds;
 
         public void Wound(int inflictedWounds)
         {
-            Wounds += inflictedWounds;
-            if (Wounds > 2)
-                Wounds = 2;
-
-            if (Wounds == 2)
-                CurrentState = State.Dead;
+            health.Wound(inflictedWounds);
         }
     }
 }
