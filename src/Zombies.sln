@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zombies.Domain", "Zombies.Domain\Zombies.Domain.csproj", "{65817FD2-B32F-4D45-80AB-6069BE761DAA}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zombies.Domain.Tests", "Zombies.Domain.Tests\Zombies.Domain.Tests.csproj", "{77CF9DC0-7217-496A-8611-9DE72257B055}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{65817FD2-B32F-4D45-80AB-6069BE761DAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65817FD2-B32F-4D45-80AB-6069BE761DAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65817FD2-B32F-4D45-80AB-6069BE761DAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65817FD2-B32F-4D45-80AB-6069BE761DAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77CF9DC0-7217-496A-8611-9DE72257B055}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77CF9DC0-7217-496A-8611-9DE72257B055}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77CF9DC0-7217-496A-8611-9DE72257B055}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77CF9DC0-7217-496A-8611-9DE72257B055}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {39DBB415-13EF-4E9A-B089-C3E6186767A9}
+	EndGlobalSection
+EndGlobal
