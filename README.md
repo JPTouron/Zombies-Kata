@@ -2,6 +2,8 @@ Zombie Survivor Kata
 ====================
 Source: [https://github.com/ardalis/kata-catalog](https://github.com/ardalis/kata-catalog)
 
+>This version uses TDD and design-first a pproach
+
 # Instructions #
 
 This kata constructs a model for a zombie boardgame's survivors. If you enjoy the kata, you may find the Zombicide series of boardgames fun as well. Complete each step before reading ahead to the next one. Revise your design to react to new requirements as they appear.
