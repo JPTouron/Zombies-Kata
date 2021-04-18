@@ -31,9 +31,6 @@ namespace Zombies.Domain
         }
     }
 
-
-    
-
     public class InventoryHandler : IEquippable
     {
         private const int initialMaxCapacity = 5;
@@ -46,6 +43,8 @@ namespace Zombies.Domain
             currentCapacity = initialMaxCapacity;
         }
 
+        public IReadOnlyCollection<Equipment> Items => (IReadOnlyCollection<Equipment>)items;
+
         public void AddEquipment(Equipment equipment)
         {
             Guard.Against.Null(equipment, nameof(equipment));
@@ -54,10 +53,7 @@ namespace Zombies.Domain
                 throw new InvalidOperationException($"Cannot add more items to equipment. Inventory at full capacity: {currentCapacity}");
 
             items.Add(equipment);
-
         }
-
-        public IReadOnlyCollection<Equipment> Items => (IReadOnlyCollection<Equipment>)items;
 
         public void ReduceCapacityBy(int reduction)
         {
@@ -66,7 +62,6 @@ namespace Zombies.Domain
             else
                 for (int i = 0; i < reduction; i++)
                     items.Remove(items[i]);
-
         }
     }
 }

@@ -64,6 +64,22 @@ namespace Zombies.Domain.Tests
             private Survivor sut;
 
             [Fact]
+            public void ThrowWhenNameIsEmpty()
+            {
+                var name = string.Empty;
+
+                Assert.Throws<ArgumentException>(() => new Survivor(name));
+            }
+
+            [Fact]
+            public void ThrowWhenNameIsNull()
+            {
+                string name = null;
+
+                Assert.Throws<ArgumentNullException>(() => new Survivor(name));
+            }
+
+            [Fact]
             public void WithANameAndZeroWoundsAndThreeRemainingActionsAndAlive()
             {
                 var name = "JP";
@@ -77,24 +93,6 @@ namespace Zombies.Domain.Tests
                 Assert.Equal(expectedWounds, sut.Wounds);
                 Assert.Equal(expectedRemainingActions, sut.RemainingActions);
                 Assert.Equal(expectedState, sut.CurrentState);
-            }
-
-
-            [Fact]
-            public void ThrowWhenNameIsEmpty()
-            {
-                var name = string.Empty;
-
-                Assert.Throws<ArgumentException>( ()=>new Survivor(name));
-
-            }
-            [Fact]
-            public void ThrowWhenNameIsNull()
-            {
-                string name = null;
-
-                Assert.Throws<ArgumentNullException>(() => new Survivor(name));
-
             }
         }
     }

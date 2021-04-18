@@ -4,14 +4,6 @@ namespace Zombies.Domain.Tests
 {
     public static class Utils
     {
-        public static Survivor CreateSurvivor(string name = null)
-        {
-            var randomName = new Fixture().Create<string>();
-            name ??= randomName;
-
-            return new Survivor(name);
-        }
-
         public static InventoryHandler CreateInventoryWithItems(int? size = null)
         {
             var sut = new InventoryHandler();
@@ -24,9 +16,14 @@ namespace Zombies.Domain.Tests
             }
 
             return sut;
-
         }
 
+        public static Survivor CreateSurvivor(string name = null)
+        {
+            var randomName = new Fixture().Create<string>();
+            name ??= randomName;
 
+            return new Survivor(name);
+        }
     }
 }
