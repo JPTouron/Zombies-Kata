@@ -12,9 +12,9 @@ namespace Zombies.Domain.Tests
             return new Survivor(name);
         }
 
-        public static Inventory CreateInventoryWithItems(int? size = null)
+        public static InventoryHandler CreateInventoryWithItems(int? size = null)
         {
-            var sut = new Inventory();
+            var sut = new InventoryHandler();
 
             if (size == null)
             {

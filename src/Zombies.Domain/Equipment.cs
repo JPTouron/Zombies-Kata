@@ -1,6 +1,7 @@
 ﻿using Ardalis.GuardClauses;
 using System;
 using System.Collections.Generic;
+using Zombies.Domain.BuildingBocks;
 
 namespace Zombies.Domain
 {
@@ -9,7 +10,7 @@ namespace Zombies.Domain
         void AddEquipment(Equipment equipment);
     }
 
-    public class Equipment
+    public class Equipment : ValueObject<Equipment>
     {
         public Equipment(string Name)
         {
@@ -18,15 +19,28 @@ namespace Zombies.Domain
         }
 
         public string Name { get; }
+
+        public override int GetHashCode()
+        {
+            return Name.GetHashCode();
+        }
+
+        protected override bool InternalEquals(Equipment other)
+        {
+            return Name.Equals(other.Name);
+        }
     }
 
-    public class Inventory : IEquippable
+
+    
+
+    public class InventoryHandler : IEquippable
     {
         private const int initialMaxCapacity = 5;
         private int currentCapacity;
         private IList<Equipment> items;
 
-        public Inventory()
+        public InventoryHandler()
         {
             items = new List<Equipment>();
             currentCapacity = initialMaxCapacity;

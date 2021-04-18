@@ -8,4 +8,8 @@
     <PackageReference Include="Ardalis.GuardClauses" Version="3.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Zombies.Domain.BuildingBocks\Zombies.Domain.BuildingBocks.csproj" />
+  </ItemGroup>
+
 </Project>

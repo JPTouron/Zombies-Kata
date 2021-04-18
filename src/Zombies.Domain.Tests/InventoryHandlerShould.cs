@@ -5,12 +5,12 @@ using Xunit;
 
 namespace Zombies.Domain.Tests
 {
-    public class InventoryShould
+    public class InventoryHandlerShould
     {
         private IFixture fixture;
-        private Inventory sut;
+        private InventoryHandler sut;
 
-        public InventoryShould()
+        public InventoryHandlerShould()
         {
             fixture = new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
         }
@@ -23,7 +23,7 @@ namespace Zombies.Domain.Tests
         [InlineData(new object[] { 5 })]
         public void AddItemsWhileWithinCapacity(int itemsCount)
         {
-            sut = new Inventory();
+            sut = new InventoryHandler();
             var e = fixture.Create<Equipment>();
 
             for (int i = 0; i < itemsCount; i++)
@@ -58,7 +58,7 @@ namespace Zombies.Domain.Tests
         [InlineData(new object[] { 10 })]
         public void ThrowWhenMoreThanFiveElementsAreTriedToBeAdded(int itemsCount)
         {
-            sut = new Inventory();
+            sut = new InventoryHandler();
             var e = fixture.Create<Equipment>();
 
             for (int i = 0; i < itemsCount; i++)
