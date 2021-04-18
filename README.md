@@ -96,3 +96,10 @@ As the Game proceeds, Survivors get better.
 How did you model interaction between the Survivors and the Game? Do Survivors have direct access to the Game in which they are playing? If so, can code in a Survivor's methods directly modify the state of other Survivors in the same game? Is that a potential problem?
 
 How did you model the Game History? Did you make sure to keep the responsibility for tracking history a concern of the Game, and not of individual Survivors?
+
+# Mutation tests
+Using Stryker mutation tests, standing within the test project run:
+
+dotnet new tool-manifest
+dotnet tool install dotnet-stryker
+dotnet stryker -ca perTest -c 4

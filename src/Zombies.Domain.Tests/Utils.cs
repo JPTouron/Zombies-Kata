@@ -11,5 +11,22 @@ namespace Zombies.Domain.Tests
 
             return new Survivor(name);
         }
+
+        public static Inventory CreateInventoryWithItems(int? size = null)
+        {
+            var sut = new Inventory();
+
+            if (size == null)
+            {
+                var e = new Fixture().Create<Equipment>();
+                for (int i = 0; i < 5; i++)
+                    sut.AddEquipment(e);
+            }
+
+            return sut;
+
+        }
+
+
     }
 }

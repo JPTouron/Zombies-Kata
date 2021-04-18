@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace Zombies.Domain.Tests
@@ -76,6 +77,24 @@ namespace Zombies.Domain.Tests
                 Assert.Equal(expectedWounds, sut.Wounds);
                 Assert.Equal(expectedRemainingActions, sut.RemainingActions);
                 Assert.Equal(expectedState, sut.CurrentState);
+            }
+
+
+            [Fact]
+            public void ThrowWhenNameIsEmpty()
+            {
+                var name = string.Empty;
+
+                Assert.Throws<ArgumentException>( ()=>new Survivor(name));
+
+            }
+            [Fact]
+            public void ThrowWhenNameIsNull()
+            {
+                string name = null;
+
+                Assert.Throws<ArgumentNullException>(() => new Survivor(name));
+
             }
         }
     }

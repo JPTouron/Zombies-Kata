@@ -1,4 +1,5 @@
-﻿using static Zombies.Domain.IHealth;
+﻿using Ardalis.GuardClauses;
+using static Zombies.Domain.IHealth;
 
 namespace Zombies.Domain
 {
@@ -8,6 +9,8 @@ namespace Zombies.Domain
 
         public Survivor(string name)
         {
+            Guard.Against.NullOrWhiteSpace(name, nameof(name));
+
             Name = name;
             RemainingActions = 3;
 
