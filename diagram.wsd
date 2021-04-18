@@ -15,7 +15,7 @@ interface IEquippable
     +void AddEquipment(Equipment equipment)
 }
 
-class Inventory
+class InventoryHandler
 {
     -int capacity
     -IList<Equipment> items;
@@ -38,8 +38,8 @@ note left
     //would loose a randome equipment
 end note
 
-Equipment *-- Inventory
-IEquippable <|-left-Inventory
+Equipment *-- InventoryHandler
+IEquippable <|-left-InventoryHandler
 
 enum State{
     +Alive
@@ -70,14 +70,10 @@ end note
 State *-- Health
 IHealth <|- Health
 
-enum Hand {
-    +Left
-    +Right
-}
 
 class Survivor
 {
-    -Inventory inventory
+    -InventoryHandler InventoryHandler
     -const int capacityReductionPerWound = 1
     ..
     +ctor(string name)
@@ -89,12 +85,11 @@ class Survivor
     +int Wounds { get; }
     ..
     +Wound(int inflictedWounds)
-    --
-    +void SetHandEquipment(Hand hand, Equipment equipment);
+    --    
     +void AddEquipment(Equipment equipment);
     ..
-    +Equipment RightHandEquip {get;}
-    +Equipment LeftHandEquip {get;}
+    +Equipment RightHandEquip {get;set;}
+    +Equipment LeftHandEquip {get;set;}
     +IReadOnlyCollection<Equipment> BackPack {get;}
 }
 
@@ -106,7 +101,7 @@ note right
     // sets equipment on left or right hand, by means of **HandEquipment** //
 
     "" AddEquipment(..) ""
-    // Inventory.Add...//
+    // InventoryHandler.Add...//
 
     ""BackPack""
     // InReserve items //
@@ -115,13 +110,12 @@ note right
 end note
 
 Health +--- Survivor
-Hand *-up- Survivor
 IHealth <|-Survivor
 IEquippable <|---Survivor
 
 
 
-Inventory +-- Survivor
+InventoryHandler +-- Survivor
 
 
 @enduml

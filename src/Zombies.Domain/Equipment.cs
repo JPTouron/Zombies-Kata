@@ -9,7 +9,10 @@ namespace Zombies.Domain
     {
         void AddEquipment(Equipment equipment);
     }
+    public interface IInventoryable {
+        IReadOnlyCollection<Equipment> Items { get; }
 
+    }
     public class Equipment : ValueObject<Equipment>
     {
         public Equipment(string Name)
@@ -31,7 +34,7 @@ namespace Zombies.Domain
         }
     }
 
-    public class InventoryHandler : IEquippable
+    public class InventoryHandler : IEquippable,IInventoryable
     {
         private const int initialMaxCapacity = 5;
         private int currentCapacity;

@@ -1,12 +1,12 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Zombies.Domain.Tests
 {
     public class SurvivorShould
     {
-        private Survivor sut;
-
         [Fact]
         public void DieWhenTwoWoundsAreInflicted()
         {
@@ -64,23 +64,7 @@ namespace Zombies.Domain.Tests
             private Survivor sut;
 
             [Fact]
-            public void ThrowWhenNameIsEmpty()
-            {
-                var name = string.Empty;
-
-                Assert.Throws<ArgumentException>(() => new Survivor(name));
-            }
-
-            [Fact]
-            public void ThrowWhenNameIsNull()
-            {
-                string name = null;
-
-                Assert.Throws<ArgumentNullException>(() => new Survivor(name));
-            }
-
-            [Fact]
-            public void WithANameAndZeroWoundsAndThreeRemainingActionsAndAlive()
+            public void WithANameAnInventoryHandlerAHealthAndZeroWoundsAndThreeRemainingActionsAndAlive()
             {
                 var name = "JP";
                 var expectedWounds = 0;
@@ -93,6 +77,30 @@ namespace Zombies.Domain.Tests
                 Assert.Equal(expectedWounds, sut.Wounds);
                 Assert.Equal(expectedRemainingActions, sut.RemainingActions);
                 Assert.Equal(expectedState, sut.CurrentState);
+            }
+
+            [Theory]
+            [ClassData(typeof(InvalidCreateData))]
+            internal void ThrowWhenNameIsEmpty(string name, InventoryHandler inventoryHandler, Health health, Type exceptionType)
+            {
+                Assert.Throws(exceptionType, () => new Survivor(name, inventoryHandler, health));
+            }
+
+            private class InvalidCreateData : IEnumerable<object[]>
+            {
+                public IEnumerator<object[]> GetEnumerator()
+                {
+                    var inventory = new InventoryHandler();
+                    var health = new Health();
+                    var name = "JP";
+
+                    yield return new object[] { string.Empty, inventory, health, typeof(ArgumentException) };
+                    yield return new object[] { null, inventory, health, typeof(ArgumentNullException) };
+                    yield return new object[] { name, null, health, typeof(ArgumentNullException) };
+                    yield return new object[] { name, inventory, null, typeof(ArgumentNullException) };
+                }
+
+                IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
             }
         }
     }
