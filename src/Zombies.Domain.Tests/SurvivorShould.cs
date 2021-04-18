@@ -1,12 +1,67 @@
+using AutoFixture;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Zombies.Domain.Tests
 {
     public class SurvivorShould
     {
+
+        public class BeAbleToUseRightHandThatShould
+        {
+            [Fact]
+            public void BeAbleToHoldInventoryInRightHand()
+            {
+                var inv = Utils.CreateInventoryWithItems(3);
+                var sut = Utils.CreateSurvivor(inventoryHandler: inv);
+
+                var item = inv.Items.First();
+                sut.RightHandEquip = item;
+
+                Assert.Equal(item, sut.RightHandEquip);
+            }
+
+            [Fact]
+            public void ThrowWhenTheEquipmentUsedIsNotInInventory()
+            {
+                var inv = Utils.CreateInventoryWithItems(3);
+                var sut = Utils.CreateSurvivor(inventoryHandler: inv);
+
+                var item = new Fixture().Create<Equipment>();
+
+                Assert.Throws<InvalidOperationException>(() => sut.RightHandEquip = item);
+            }
+        }
+        public class BeAbleToUseLeftHandThatShould
+        {
+            [Fact]
+            public void BeAbleToHoldInventoryInRightHand()
+            {
+                var inv = Utils.CreateInventoryWithItems(3);
+                var sut = Utils.CreateSurvivor(inventoryHandler: inv);
+
+                var item = inv.Items.First();
+                sut.LeftHandEquip = item;
+
+                Assert.Equal(item, sut.LeftHandEquip);
+            }
+
+            [Fact]
+            public void ThrowWhenTheEquipmentUsedIsNotInInventory()
+            {
+                var inv = Utils.CreateInventoryWithItems(3);
+                var sut = Utils.CreateSurvivor(inventoryHandler: inv);
+
+                var item = new Fixture().Create<Equipment>();
+
+                Assert.Throws<InvalidOperationException>(() => sut.LeftHandEquip= item);
+            }
+        }
+
+
         [Fact]
         public void DieWhenTwoWoundsAreInflicted()
         {

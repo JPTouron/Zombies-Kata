@@ -3,6 +3,7 @@
 title "Zombies Class diagram"
 
 
+' ADD NO EQUIPMENT
 class Equipment
 {
     +ctor(string Name)
@@ -10,10 +11,6 @@ class Equipment
     +string Name {get;}
 }
 
-interface IEquippable
-{
-    +void AddEquipment(Equipment equipment)
-}
 
 class InventoryHandler
 {
@@ -26,7 +23,7 @@ class InventoryHandler
     ..
     +void AddEquipment(Equipment equipment)
     +void ReduceCapacityBy(int reduction)
-
+    +bool ContainsEquipment(Equipment equipment)
 }
 
 note left
@@ -39,7 +36,6 @@ note left
 end note
 
 Equipment *-- InventoryHandler
-IEquippable <|-left-InventoryHandler
 
 enum State{
     +Alive
@@ -75,6 +71,8 @@ class Survivor
 {
     -InventoryHandler InventoryHandler
     -const int capacityReductionPerWound = 1
+    -Equipment rightHandEquip 
+    -Equipment leftHandEquip 
     ..
     +ctor(string name)
     __
@@ -84,13 +82,12 @@ class Survivor
     +State CurrentState  { get; }
     +int Wounds { get; }
     ..
-    +Wound(int inflictedWounds)
-    --    
+    +void Wound(int inflictedWounds)        
     +void AddEquipment(Equipment equipment);
     ..
     +Equipment RightHandEquip {get;set;}
     +Equipment LeftHandEquip {get;set;}
-    +IReadOnlyCollection<Equipment> BackPack {get;}
+    +IReadOnlyCollection<Equipment> Items {get;}
 }
 
 note right
@@ -111,11 +108,7 @@ end note
 
 Health +--- Survivor
 IHealth <|-Survivor
-IEquippable <|---Survivor
-
-
 
 InventoryHandler +-- Survivor
-
 
 @enduml

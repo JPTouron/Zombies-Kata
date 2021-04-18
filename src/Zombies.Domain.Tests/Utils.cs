@@ -8,17 +8,16 @@ namespace Zombies.Domain.Tests
         {
             var sut = new InventoryHandler();
 
-            if (size == null)
-            {
-                var e = new Fixture().Create<Equipment>();
-                for (int i = 0; i < 5; i++)
-                    sut.AddEquipment(e);
-            }
+            size ??= 5;
+
+            var e = new Fixture().Create<Equipment>();
+            for (int i = 0; i < size; i++)
+                sut.AddEquipment(e);
 
             return sut;
         }
 
-        public static Survivor CreateSurvivor(string name = null, IHealth health =null, InventoryHandler inventoryHandler=null)
+        public static Survivor CreateSurvivor(string name = null, IHealth health = null, InventoryHandler inventoryHandler = null)
         {
             var randomName = new Fixture().Create<string>();
             name ??= randomName;
@@ -26,7 +25,7 @@ namespace Zombies.Domain.Tests
             inventoryHandler ??= new InventoryHandler();
 
 
-            return new Survivor(name,inventoryHandler, health);
+            return new Survivor(name, inventoryHandler, health);
         }
     }
 }

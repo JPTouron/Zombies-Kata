@@ -15,6 +15,34 @@ namespace Zombies.Domain.Tests
             fixture = new Fixture().Customize(new AutoMoqCustomization { ConfigureMembers = true });
         }
 
+
+        [Fact]
+        public void ReturnTrueIfAnItemExistsInInventory()
+        {
+            sut = Utils.CreateInventoryWithItems(3);
+            
+            var equipment = fixture.Create<Equipment>();
+            sut.AddEquipment(equipment);
+
+            var result = sut.ContainsEquipment(equipment);
+
+            Assert.True(result);
+
+        }
+
+        [Fact]
+        public void ReturnFalseIfAnItemDoesNotExistInInventory()
+        {
+            sut = Utils.CreateInventoryWithItems(3);
+
+            var equipment = fixture.Create<Equipment>();
+
+            var result = sut.ContainsEquipment(equipment);
+
+            Assert.False(result);
+
+        }
+
         [Theory]
         [InlineData(new object[] { 1 })]
         [InlineData(new object[] { 2 })]

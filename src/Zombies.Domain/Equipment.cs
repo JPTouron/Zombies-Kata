@@ -5,14 +5,10 @@ using Zombies.Domain.BuildingBocks;
 
 namespace Zombies.Domain
 {
-    public interface IEquippable
-    {
-        void AddEquipment(Equipment equipment);
-    }
-    public interface IInventoryable {
-        IReadOnlyCollection<Equipment> Items { get; }
+    
 
-    }
+
+
     public class Equipment : ValueObject<Equipment>
     {
         public Equipment(string Name)
@@ -34,7 +30,7 @@ namespace Zombies.Domain
         }
     }
 
-    public class InventoryHandler : IEquippable,IInventoryable
+    public class InventoryHandler 
     {
         private const int initialMaxCapacity = 5;
         private int currentCapacity;
@@ -56,6 +52,11 @@ namespace Zombies.Domain
                 throw new InvalidOperationException($"Cannot add more items to equipment. Inventory at full capacity: {currentCapacity}");
 
             items.Add(equipment);
+        }
+
+        public bool ContainsEquipment(Equipment equipment)
+        {
+            return items.Contains(equipment);
         }
 
         public void ReduceCapacityBy(int reduction)

@@ -25,7 +25,7 @@ namespace Zombies.Domain
             Wounds = 0;
         }
 
-        public IHealth.State CurrentState { get; private set; }
+        public State CurrentState { get; private set; }
 
         public int Wounds { get; private set; }
 
