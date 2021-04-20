@@ -17,7 +17,7 @@ namespace Zombies.Domain
         void Wound(int inflictedWounds);
     }
 
-    internal class Health : IHealth
+    internal sealed class Health : IHealth
     {
         public Health()
         {

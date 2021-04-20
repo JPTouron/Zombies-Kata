@@ -3,39 +3,83 @@
 title "Zombies Class diagram"
 
 
-' ADD NO EQUIPMENT
-class Equipment
-{
-    +ctor(string Name)
-    __
-    +string Name {get;}
+frame Gear{
+
+    interface IEquipment{
+        +string Name { get; }
+    }
+
+    abstract class EquipmentBase
+    {
+        +string Name {get;}
+    }
+    IEquipment <|--EquipmentBase
+
+    class NoEquipment
+    {
+        +string Name {get;}
+    }
+
+    note right
+        ""Name => string.empty""
+    end note
+
+    EquipmentBase <|-right- NoEquipment
+
+
+    class Equipment
+    {
+        +ctor(string Name)
+        __
+        +string Name {get;}
+    }
+
+    EquipmentBase <|-- Equipment
 }
+frame Inventory{
 
+    interface IInventoryHandler
+    {
+        +IReadOnlyCollection<IEquipment> Items { get; }
+        +void AddEquipment(IEquipment equipment)
+        +bool ContainsEquipment(IEquipment equipment)
+        +void ReduceCapacityBy(int reduction)
+    }
 
-class InventoryHandler
-{
-    -int capacity
-    -IList<Equipment> items;
-    ..
-    +ctor()
-    __
-    +IReadOnlyCollection<Equipment> Items {get;}
-    ..
-    +void AddEquipment(Equipment equipment)
-    +void ReduceCapacityBy(int reduction)
-    +bool ContainsEquipment(Equipment equipment)
+    class InventoryProvider{
+        +IInventoryHandler GetInventory()
+    }
+    note left
+        //factory class//
+    end note
+    IInventoryHandler o-left- InventoryProvider
+
+    class InventoryHandler
+    {
+        -int capacity
+        -IList<Equipment> items;
+        ..
+        +ctor()
+        __
+        +IReadOnlyCollection<Equipment> Items {get;}
+        ..
+        +void AddEquipment(Equipment equipment)
+        +void ReduceCapacityBy(int reduction)
+        +bool ContainsEquipment(Equipment equipment)
+    }
+
+    note right
+        manages all the equipment
+        a Survivor may carry
+        In Hand or In Reserve
+
+        ""ReduceCapacityBy(...)""
+        //would loose a random equipment//
+    end note
+
+    IInventoryHandler <|- InventoryHandler
+    Equipment *-- InventoryHandler
 }
-
-note left
-    manages all the equipment
-    a Survivor may carry
-    In Hand or In Reserve
-
-    ""ReduceCapacityBy(...)""
-    //would loose a randome equipment
-end note
-
-Equipment *-- InventoryHandler
 
 enum State{
     +Alive
@@ -63,7 +107,7 @@ note right
     "" if inflictedWounds < 2 => Dead""
 end note
 
-State *-- Health
+State *- Health
 IHealth <|- Health
 
 
@@ -71,8 +115,8 @@ class Survivor
 {
     -InventoryHandler InventoryHandler
     -const int capacityReductionPerWound = 1
-    -Equipment rightHandEquip 
-    -Equipment leftHandEquip 
+    -IEquipment rightHandEquip
+    -IEquipment leftHandEquip
     ..
     +ctor(string name)
     __
@@ -82,31 +126,28 @@ class Survivor
     +State CurrentState  { get; }
     +int Wounds { get; }
     ..
-    +void Wound(int inflictedWounds)        
-    +void AddEquipment(Equipment equipment);
+    +void Wound(int inflictedWounds)
+    +void AddEquipment(IEquipment equipment);
     ..
-    +Equipment RightHandEquip {get;set;}
-    +Equipment LeftHandEquip {get;set;}
-    +IReadOnlyCollection<Equipment> Items {get;}
+    +IEquipment RightHandEquip {get;set;}
+    +IEquipment LeftHandEquip {get;set;}
+    +IReadOnlyCollection<IEquipment> Items {get;}
 }
 
 note right
     // Survivor would be initialized with: zero wounds, //
     // three remaining actions, Alive CurrentState //
 
-    "" SetHandEquipment(...) ""
-    // sets equipment on left or right hand, by means of **HandEquipment** //
-
     "" AddEquipment(..) ""
     // InventoryHandler.Add...//
 
-    ""BackPack""
-    // InReserve items //
+    ""Items""
+    // All available items //
 
 
 end note
 
-Health +--- Survivor
+Health +-up- Survivor
 IHealth <|-Survivor
 
 InventoryHandler +-- Survivor

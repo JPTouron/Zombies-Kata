@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using Zombies.Domain.BuildingBocks;
+using Zombies.Domain.Gear;
+using Zombies.Domain.Inventory;
 using static Zombies.Domain.IHealth;
 
 namespace Zombies.Domain
@@ -9,11 +11,11 @@ namespace Zombies.Domain
     public class Survivor : IAggregateRoot, IHealth
     {
         private readonly IHealth health;
-        private readonly InventoryHandler inventory;
-        private Equipment leftHandEquip;
-        private Equipment rightHandEquip;
+        private readonly IInventoryHandler inventory;
+        private IEquipment leftHandEquip;
+        private IEquipment rightHandEquip;
 
-        public Survivor(string name, InventoryHandler inventory, IHealth health)
+        public Survivor(string name, IInventoryHandler inventory, IHealth health)
         {
             Guard.Against.NullOrWhiteSpace(name, nameof(name));
             Guard.Against.Null(inventory, nameof(inventory));
@@ -25,7 +27,9 @@ namespace Zombies.Domain
             this.health = health;
         }
 
-        public Equipment LeftHandEquip
+        public IReadOnlyCollection<IEquipment> BackPack => inventory.Items;
+
+        public IEquipment LeftHandEquip
         {
             get => leftHandEquip; set
             {
@@ -39,7 +43,7 @@ namespace Zombies.Domain
 
         public int RemainingActions { get; }
 
-        public Equipment RightHandEquip
+        public IEquipment RightHandEquip
         {
             get => rightHandEquip;
             set
@@ -52,18 +56,15 @@ namespace Zombies.Domain
 
         public State CurrentState => health.CurrentState;
 
-        public IReadOnlyCollection<Equipment> BackPack => inventory.Items;
-
         public int Wounds => health.Wounds;
 
         public void Wound(int inflictedWounds)
         {
-
             health.Wound(inflictedWounds);
             inventory.ReduceCapacityBy(1);
         }
 
-        private void ValidateEquipmentExistsInInventory(Equipment value)
+        private void ValidateEquipmentExistsInInventory(IEquipment value)
         {
             if (!inventory.ContainsEquipment(value))
                 throw new InvalidOperationException($"The equipment {value.Name}, is currently not in your inventory. Please use an equipment from your inventory.");

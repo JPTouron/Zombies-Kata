@@ -1,5 +1,6 @@
 ﻿using System;
 using Xunit;
+using Zombies.Domain.Gear;
 
 namespace Zombies.Domain.Tests
 {
