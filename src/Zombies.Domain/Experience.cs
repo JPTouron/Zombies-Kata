@@ -1,31 +1,40 @@
 ﻿namespace Zombies.Domain
 {
-    internal class Experience
+    public interface IExperience
+    {
+        int ExperienceValue { get; }
+
+        XpLevel Level { get; }
+    }
+
+    public enum XpLevel
+    {
+        Blue = 0,
+        Yellow = 6,
+        Orange = 18,
+        Red = 42
+    }
+
+    public class Experience : IExperience
     {
         public Experience()
         {
-            Value = 0;
+            ExperienceValue = 0;
         }
 
-        public enum XpLevel
-        {
-            Blue = 0,
-            Yellow = 6,
-            Orange = 18,
-            Red = 42
-        }
+        public int ExperienceValue { get; private set; }
 
         public XpLevel Level
         {
             get
             {
-                if (Value < (int)XpLevel.Yellow)
+                if (ExperienceValue < (int)XpLevel.Yellow)
                     return XpLevel.Blue;
 
-                if (Value < (int)XpLevel.Orange)
+                if (ExperienceValue < (int)XpLevel.Orange)
                     return XpLevel.Yellow;
 
-                if (Value < (int)XpLevel.Red)
+                if (ExperienceValue < (int)XpLevel.Red)
                     return XpLevel.Orange;
 
                 return XpLevel.Red;
@@ -46,11 +55,9 @@
             }
         }
 
-        public int Value { get; private set; }
-
         public void Increase()
         {
-            Value++;
+            ExperienceValue++;
         }
     }
 }

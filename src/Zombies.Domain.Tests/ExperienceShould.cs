@@ -16,7 +16,7 @@ namespace Zombies.Domain.Tests
             for (int i = 0; i < increaseTimes; i++)
                 sut.Increase();
 
-            Assert.Equal(expectedIncreasedExperience, sut.Value);
+            Assert.Equal(expectedIncreasedExperience, sut.ExperienceValue);
         }
 
         [Theory]
@@ -30,7 +30,7 @@ namespace Zombies.Domain.Tests
             for (int i = 0; i < increaseTimes; i++)
                 sut.Increase();
 
-            Assert.Equal(expectedLevel, sut.Value);
+            Assert.Equal(expectedLevel, sut.ExperienceValue);
             Assert.Equal((XpLevel)expectedLevel, sut.Level);
             Assert.Equal(expectedMaxValue, sut.MaxValue);
         }
@@ -42,7 +42,7 @@ namespace Zombies.Domain.Tests
             {
                 var sut = new Experience();
 
-                Assert.Equal(0, sut.Value);
+                Assert.Equal(0, sut.ExperienceValue);
                 Assert.Equal(6, sut.MaxValue);
                 Assert.Equal(XpLevel.Blue, sut.Level);
             }

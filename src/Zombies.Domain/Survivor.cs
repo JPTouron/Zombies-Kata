@@ -8,26 +8,36 @@ using static Zombies.Domain.IHealth;
 
 namespace Zombies.Domain
 {
-    public class Survivor : IAggregateRoot, IHealth
+    public class Survivor : IAggregateRoot, IHealth, IExperience
     {
+        private readonly Experience experience;
         private readonly IHealth health;
         private readonly IInventoryHandler inventory;
         private IEquipment leftHandEquip;
         private IEquipment rightHandEquip;
 
-        public Survivor(string name, IInventoryHandler inventory, IHealth health)
+        public Survivor(string name, IInventoryHandler inventory, IHealth health, Experience experience)
         {
             Guard.Against.NullOrWhiteSpace(name, nameof(name));
             Guard.Against.Null(inventory, nameof(inventory));
             Guard.Against.Null(health, nameof(health));
+            Guard.Against.Null(experience, nameof(experience));
 
             Name = name;
             RemainingActions = 3;
             this.inventory = inventory;
             this.health = health;
+            this.experience = experience;
+        }
+
+        public void Kill(Zombie zombie)
+        {
+            experience.Increase();
         }
 
         public IReadOnlyCollection<IEquipment> BackPack => inventory.Items;
+
+        public int ExperienceValue => experience.ExperienceValue;
 
         public IEquipment LeftHandEquip
         {
@@ -39,6 +49,9 @@ namespace Zombies.Domain
             }
         }
 
+        public XpLevel Level => experience.Level;
+
+        //TODO: Kill(Zombie zombie)
         public string Name { get; }
 
         public int RemainingActions { get; }

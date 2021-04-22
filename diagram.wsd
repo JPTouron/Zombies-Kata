@@ -134,7 +134,7 @@ frame XP {
         +int MaxValue {get}
         +int Increase()
     }
-    note right
+    note left
         <b>Value starts at zero</b>
 
         * When a Survivor exceeds 6 Experience, they advance to level //Yellow//
@@ -148,7 +148,8 @@ frame XP {
         //only increases by one//
     end note
 
-    XpLevel *- Experience
+    XpLevel *-down- Experience
+    IExperience <|-left- Experience
 }
 
 interface IExperience{
@@ -180,6 +181,8 @@ class Survivor
     ..
     +int Experience {get}
     +XpLevel XpLevel {get}
+    ..
+    +void Kill(Zombie zombie)
 }
 
 note left
@@ -196,9 +199,16 @@ end note
 Health +-up- Survivor
 IHealth <|- Survivor
 Experience *-- Survivor
-IExperience <|-left- Survivor
-
+IExperience <|-- Survivor
 InventoryHandler +-- Survivor
+
+
+class Zombie {
+
+}
+note right
+    placeholder, we don't have info on this
+end note
 
 enum GameState{
     +OnGoing
@@ -228,6 +238,6 @@ end note
 Survivor o- Game
 GameState *-up- Game
 Experience *-- Game
-IExperience <|-up- Game
+IExperience <|-- Game
 
 @enduml

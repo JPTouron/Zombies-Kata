@@ -21,14 +21,15 @@ namespace Zombies.Domain.Tests
             return sut;
         }
 
-        internal static Survivor CreateSurvivor(string name = null, IHealth health = null, InventoryHandler inventoryHandler = null)
+        internal static Survivor CreateSurvivor(string name = null, IHealth health = null, InventoryHandler inventoryHandler = null, Experience xp = null)
         {
             var randomName = new Fixture().Create<string>();
             name ??= randomName;
             health ??= new Health();
             inventoryHandler ??= new InventoryHandler();
+            xp ??= new Experience();
 
-            return new Survivor(name, inventoryHandler, health);
+            return new Survivor(name, inventoryHandler, health, xp);
         }
     }
 }
