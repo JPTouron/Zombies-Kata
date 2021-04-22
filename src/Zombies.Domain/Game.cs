@@ -2,10 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace Zombies.Domain
 {
-    public class Game
+    public class Game : IExperience
     {
         private IList<Survivor> survivors;
 
@@ -33,6 +34,10 @@ namespace Zombies.Domain
 
         public int SurvivorCount => survivors.Count;
 
+        public int ExperienceValue => MaxOrDefault(survivors, x => x.ExperienceValue);
+
+        public XpLevel Level => MaxOrDefaultXPLevel(survivors, x => x.Level);
+
         public void AddSurvivor(Survivor survivor)
         {
             Guard.Against.Null(survivor, nameof(survivor));
@@ -41,6 +46,16 @@ namespace Zombies.Domain
                 throw new InvalidOperationException($"A survivor with the name {survivor.Name} already exists.");
 
             survivors.Add(survivor);
+        }
+
+        private int MaxOrDefault<T>(IList<T> source, Expression<Func<T, int?>> selector, int nullValue = 0)
+        {
+            return source.AsQueryable().Max(selector) ?? nullValue;
+        }
+
+        private XpLevel MaxOrDefaultXPLevel<T>(IList<T> source, Expression<Func<T, XpLevel?>> selector, XpLevel nullValue = 0)
+        {
+            return source.AsQueryable().Max(selector) ?? nullValue;
         }
     }
 }

@@ -31,5 +31,17 @@ namespace Zombies.Domain.Tests
 
             return new Survivor(name, inventoryHandler, health, xp);
         }
+
+        internal static Experience CreateXP(int experienceValue = 0)
+        {
+            var xp = new Experience();
+
+            if (experienceValue > 0)
+                for (int i = 0; i < experienceValue; i++)
+                    xp.Increase();
+
+            return xp;
+
+        }
     }
 }
