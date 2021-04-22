@@ -36,6 +36,7 @@ frame Gear{
 
     EquipmentBase <|-- Equipment
 }
+
 frame Inventory{
 
     interface IInventoryHandler
@@ -81,35 +82,79 @@ frame Inventory{
     Equipment *-- InventoryHandler
 }
 
-enum State{
-    +Alive
-    +Dead
+frame Health {
+
+    enum State{
+        +Alive
+        +Dead
+    }
+
+    interface IHealth
+    {
+        +State CurrentState  { get; }
+        +int Wounds { get;}
+        +Wound(int inflictedWounds)
+    }
+
+    class Health
+    {
+        +ctor()
+        __
+        +State CurrentState { get; private set; }
+        +int Wounds { get; private set;}
+        +Wound(int inflictedWounds)
+    }
+
+    note right
+        "" Wound() ""
+        "" if inflictedWounds < 2 => Dead""
+    end note
+
+    State *-up- Health
+    IHealth <|- Health
 }
 
-interface IHealth
-{
-    +State CurrentState  { get; }
-    +int Wounds { get;}
-    +Wound(int inflictedWounds)
+frame XP {
+    enum XpLevel
+    {
+        +Blue
+        +Yellow
+        +Orange
+        +Red
+    }
+
+
+
+    class Experience
+    {
+        +ctor()
+        __
+        +XpLevel Level {get}
+        +int Value {get}
+        +int MaxValue {get}
+        +int Increase()
+    }
+    note right
+        <b>Value starts at zero</b>
+
+        * When a Survivor exceeds 6 Experience, they advance to level //Yellow//
+        * When a Survivor exceeds 18 Experience, they advance to level //Orange//
+        * When a Survivor exceeds 42 Experience, they advance to level //Red//
+
+        Value holds the current xp value
+        MaxValue  holds the value when we level up in the current level (6,18, 42, etc...)
+
+        ""Increase()""
+        //only increases by one//
+    end note
+
+    XpLevel *- Experience
 }
 
-class Health
-{
-    +ctor()
-    __
-    +State CurrentState { get; private set; }
-    +int Wounds { get; private set;}
-    +Wound(int inflictedWounds)
+interface IExperience{
+    +int Experience {get}
+    +XpLevel XpLevel {get}
 }
-
-note right
-    "" Wound() ""
-    "" if inflictedWounds < 2 => Dead""
-end note
-
-State *- Health
-IHealth <|- Health
-
 
 class Survivor
 {
@@ -132,9 +177,12 @@ class Survivor
     +IEquipment RightHandEquip {get;set;}
     +IEquipment LeftHandEquip {get;set;}
     +IReadOnlyCollection<IEquipment> Items {get;}
+    ..
+    +int Experience {get}
+    +XpLevel XpLevel {get}
 }
 
-note right
+note left
     // Survivor would be initialized with: zero wounds, //
     // three remaining actions, Alive CurrentState //
 
@@ -143,13 +191,43 @@ note right
 
     ""Items""
     // All available items //
-
-
 end note
 
 Health +-up- Survivor
-IHealth <|-Survivor
+IHealth <|- Survivor
+Experience *-- Survivor
+IExperience <|-left- Survivor
 
 InventoryHandler +-- Survivor
+
+enum GameState{
+    +OnGoing
+    +Finished
+}
+
+class Game
+{
+    -IList<Survivor> survivors
+    ....
+    +GameState State
+    +int SurvivorCount
+    +void AddSurvivor(Survivor survivor)
+    --
+    +int Experience {get}
+    +XpLevel Level {get}
+}
+
+note right
+    ""Experience""
+    // would have to perform a calculation to get the ""Experience.Value"" from the most leveled up survivor //
+
+    ""XpLevel""
+    // same calculation as for ""Experience"" //
+end note
+
+Survivor o- Game
+GameState *-up- Game
+Experience *-- Game
+IExperience <|-up- Game
 
 @enduml

@@ -31,9 +31,9 @@ namespace Zombies.Domain.Tests
             survivor2.Wound(3);
             survivor3.Wound(3);
 
-
-            Assert.Equal( Game.GamesState.Finished, sut.State);
+            Assert.Equal(Game.GameState.Finished, sut.State);
         }
+
         [Fact]
         public void GameIsOnGoingIfAnySurvivorsLive()
         {
@@ -48,8 +48,7 @@ namespace Zombies.Domain.Tests
             survivor1.Wound(3);
             survivor2.Wound(3);
 
-
-            Assert.Equal(Game.GamesState.OnGoing, sut.State);
+            Assert.Equal(Game.GameState.OnGoing, sut.State);
         }
 
         [Fact]
@@ -83,7 +82,7 @@ namespace Zombies.Domain.Tests
                 var sut = new Game();
 
                 Assert.Equal(0, sut.SurvivorCount);
-                Assert.Equal(Game.GamesState.Finished, sut.State);
+                Assert.Equal(Game.GameState.Finished, sut.State);
             }
         }
     }

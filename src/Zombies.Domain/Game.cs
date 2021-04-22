@@ -7,31 +7,28 @@ namespace Zombies.Domain
 {
     public class Game
     {
-
-        public enum GamesState
-        {
-
-            OnGoing,
-            Finished
-        }
-
-        public GamesState State
-        {
-            get
-            {
-
-                if (survivors.Any(x => x.CurrentState == IHealth.State.Alive))
-                    return GamesState.OnGoing;
-                else
-                    return GamesState.Finished;
-            }
-        }
-
         private IList<Survivor> survivors;
 
         public Game()
         {
             survivors = new List<Survivor>();
+        }
+
+        public enum GameState
+        {
+            OnGoing,
+            Finished
+        }
+
+        public GameState State
+        {
+            get
+            {
+                if (survivors.Any(x => x.CurrentState == IHealth.State.Alive))
+                    return GameState.OnGoing;
+                else
+                    return GameState.Finished;
+            }
         }
 
         public int SurvivorCount => survivors.Count;
@@ -45,8 +42,5 @@ namespace Zombies.Domain
 
             survivors.Add(survivor);
         }
-
-
-
     }
 }
