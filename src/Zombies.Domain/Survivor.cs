@@ -30,14 +30,7 @@ namespace Zombies.Domain
             this.experience = experience;
         }
 
-        public void Kill(Zombie zombie)
-        {
-            experience.Increase();
-        }
-
         public IReadOnlyCollection<IEquipment> BackPack => inventory.Items;
-
-        public int ExperienceValue => experience.ExperienceValue;
 
         public IEquipment LeftHandEquip
         {
@@ -49,9 +42,6 @@ namespace Zombies.Domain
             }
         }
 
-        public XpLevel Level => experience.Level;
-
-        //TODO: Kill(Zombie zombie)
         public string Name { get; }
 
         public int RemainingActions { get; }
@@ -69,7 +59,21 @@ namespace Zombies.Domain
 
         public State CurrentState => health.CurrentState;
 
+        public int ExperienceValue => experience.ExperienceValue;
+
+        public XpLevel Level => experience.Level;
+
         public int Wounds => health.Wounds;
+
+        public void AddEquipment(IEquipment equipment)
+        {
+            inventory.AddEquipment(equipment);
+        }
+
+        public void Kill(Zombie zombie)
+        {
+            experience.Increase();
+        }
 
         public void Wound(int inflictedWounds)
         {
