@@ -8,15 +8,19 @@ using static Zombies.Domain.IHealth;
 
 namespace Zombies.Domain
 {
-    public class Survivor : IAggregateRoot, IHealth, IExperience
+
+
+    
+
+    internal class Survivor : IAggregateRoot, IHealth, IExperience, ISurvivor
     {
-        private readonly Experience experience;
+        private readonly ISurvivorExperience experience;
         private readonly IHealth health;
         private readonly IInventoryHandler inventory;
         private IEquipment leftHandEquip;
         private IEquipment rightHandEquip;
 
-        public Survivor(string name, IInventoryHandler inventory, IHealth health, Experience experience)
+        public Survivor(string name, IInventoryHandler inventory, IHealth health, ISurvivorExperience experience)
         {
             Guard.Against.NullOrWhiteSpace(name, nameof(name));
             Guard.Against.Null(inventory, nameof(inventory));

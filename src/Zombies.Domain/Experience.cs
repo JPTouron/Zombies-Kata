@@ -15,7 +15,18 @@
         Red = 42
     }
 
-    public class Experience : IExperience
+    public interface ISurvivorExperience
+    {
+        int ExperienceValue { get; }
+        XpLevel Level { get; }
+        int MaxValue { get; }
+    void Increase();
+
+        
+    }
+
+
+    internal class Experience : IExperience, ISurvivorExperience
     {
         public Experience()
         {
