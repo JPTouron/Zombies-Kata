@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using Xunit;
 using Zombies.Domain.Gear;
-using Zombies.Domain.Inventory;
+using Zombies.Domain.Survivors;
 
 namespace Zombies.Domain.Tests
 {

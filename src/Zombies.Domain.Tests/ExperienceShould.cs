@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using static Zombies.Domain.Experience;
+using Zombies.Domain.Survivors;
 
 namespace Zombies.Domain.Tests
 {

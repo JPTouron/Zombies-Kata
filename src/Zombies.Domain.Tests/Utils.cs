@@ -1,6 +1,6 @@
 ﻿using AutoFixture;
 using Zombies.Domain.Gear;
-using Zombies.Domain.Inventory;
+using Zombies.Domain.Survivors;
 
 namespace Zombies.Domain.Tests
 {
@@ -21,7 +21,7 @@ namespace Zombies.Domain.Tests
             return sut;
         }
 
-        internal static Survivor CreateSurvivor(string name = null, IHealth health = null, InventoryHandler inventoryHandler = null, Experience xp = null)
+        internal static Survivor CreateSurvivor(string name = null, Health health = null, InventoryHandler inventoryHandler = null, Experience xp = null)
         {
             var randomName = new Fixture().Create<string>();
             name ??= randomName;
@@ -41,7 +41,6 @@ namespace Zombies.Domain.Tests
                     xp.Increase();
 
             return xp;
-
         }
     }
 }

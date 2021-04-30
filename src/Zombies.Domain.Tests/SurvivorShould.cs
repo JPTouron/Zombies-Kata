@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Zombies.Domain.Gear;
-using Zombies.Domain.Inventory;
+using Zombies.Domain.Survivors;
 
 namespace Zombies.Domain.Tests
 {
@@ -15,7 +15,7 @@ namespace Zombies.Domain.Tests
         public void DieWhenTwoWoundsAreInflicted()
         {
             var inflictedWounds = 2;
-            var expectedState = IHealth.State.Dead;
+            var expectedState = HealthState.Dead;
             var sut = Utils.CreateSurvivor();
 
             sut.Wound(inflictedWounds);
@@ -61,7 +61,7 @@ namespace Zombies.Domain.Tests
         public void NotDieWhenASingleWoundIsInflicted()
         {
             var inflictedWounds = 1;
-            var expectedState = IHealth.State.Alive;
+            var expectedState = HealthState.Alive;
             var sut = Utils.CreateSurvivor();
 
             sut.Wound(inflictedWounds);
@@ -91,7 +91,7 @@ namespace Zombies.Domain.Tests
             var sut = Utils.CreateSurvivor();
 
             sut.Wound(inflictedWounds);
-            Assert.Equal(IHealth.State.Dead, sut.CurrentState);
+            Assert.Equal(HealthState.Dead, sut.CurrentState);
 
             sut.Wound(inflictedWounds);
             Assert.Equal(expectedMaxWounds, sut.Wounds);
@@ -162,7 +162,7 @@ namespace Zombies.Domain.Tests
                 var expectedExperience = 0;
                 var expectedXPLevel = XpLevel.Blue;
                 var expectedRemainingActions = 3;
-                var expectedState = IHealth.State.Alive;
+                var expectedState = HealthState.Alive;
 
                 sut = Utils.CreateSurvivor(name);
 
