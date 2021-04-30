@@ -6,9 +6,10 @@ namespace Zombies.Application.Tests
 {
     internal static class Utils
     {
-        internal static Game CreateGame()
+        internal static Game CreateGame(IGameHistoricEvents gameHistoricEvents = null)
         {
-            return new Game(HistoryRecorder.Instance());
+            gameHistoricEvents ??= HistoryRecorder.Instance();
+            return new Game(gameHistoricEvents);
         }
 
         internal static ISurvivor CreateHistorySurvivor(string name = null, Health health = null, InventoryHandler inventoryHandler = null, Experience xp = null, ISurvivorHistoricEvents history = null)

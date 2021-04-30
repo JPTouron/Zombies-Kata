@@ -7,6 +7,11 @@
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>Zombies.Application.Tests</_Parameter1>
     </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+      <!--Required by Moq to enable tests to mock internal classes-->
+      <_Parameter1>DynamicProxyGenAssembly2</_Parameter1>
+    </AssemblyAttribute>
+
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Zombies.Domain\Zombies.Domain.csproj" />

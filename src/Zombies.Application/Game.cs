@@ -38,7 +38,7 @@ namespace Zombies.Application
 
         public IList<HistoryRecord> Events => ((IGameHistory)historicEvents).Events;
 
-        public int ExperienceValue => MaxOrDefault(survivors, x => x.ExperienceValue);
+        public int ExperiencePoints => MaxOrDefault(survivors, x => x.ExperiencePoints);
 
         public XpLevel Level => MaxOrDefaultXPLevel(survivors, x => x.Level);
 
@@ -67,13 +67,18 @@ namespace Zombies.Application
 
         public void UserLeveledUpNotificationHandler()
         {
-            if (currentXPLevel != null)
+            var newLevel = Level;
+
+            if (CurrentLevelNotInitializedOrLowerThanNewLevel(newLevel))
             {
-                var newLevel = Level;
-                if (currentXPLevel < newLevel)
-                    historicEvents.GameLeveledUp(newLevel);
+                historicEvents.GameLeveledUp(newLevel);
+                currentXPLevel = Level;
             }
-            currentXPLevel = Level;
+        }
+
+        private bool CurrentLevelNotInitializedOrLowerThanNewLevel(XpLevel newLevel)
+        {
+            return currentXPLevel == null || currentXPLevel < newLevel;
         }
 
         private int MaxOrDefault<T>(IList<T> source, Expression<Func<T, int?>> selector, int nullValue = 0)

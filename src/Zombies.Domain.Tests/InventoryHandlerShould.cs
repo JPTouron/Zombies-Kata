@@ -102,10 +102,23 @@ namespace Zombies.Domain.Tests
             sut.ReduceCapacityBy(reduction);
 
             Assert.Equal(expectedCapacity, sut.Items.Count);
+            Assert.Equal(expectedCapacity, sut.Capacity);
         }
 
         [Fact]
-        public void ReducingCapacityWhenThereAreNoItemsDoesNotHaveImpact()
+        public void ReducingCapacityReducesCapacity()
+        {
+            var reduction = 1;
+            var sut = new InventoryHandler();
+            var expectedCapacityAfterReduction = sut.Capacity - reduction;
+
+            sut.ReduceCapacityBy(reduction);
+
+            Assert.Equal(expectedCapacityAfterReduction, sut.Capacity);
+        }
+
+        [Fact]
+        public void ReducingCapacityWhenThereAreNoItemsDoesNotHaveImpactOnItemsCount()
         {
             var reduction = 1;
             var expectedCapacityAfterReduction = 0;

@@ -28,6 +28,8 @@ namespace Zombies.Application.History
             this.historicEvents = historicEvents;
         }
 
+        public int BackPackCapacity => survivor.BackPackCapacity;
+
         public IEquipment LeftHandEquip { get => survivor.LeftHandEquip; set => survivor.LeftHandEquip = value; }
 
         public IEquipment RightHandEquip { get => survivor.RightHandEquip; set => survivor.RightHandEquip = value; }
@@ -36,7 +38,7 @@ namespace Zombies.Application.History
 
         public HealthState CurrentState => survivor.CurrentState;
 
-        public int ExperienceValue => survivor.ExperienceValue;
+        public int ExperiencePoints => survivor.ExperienceValue;
 
         public XpLevel Level => survivor.Level;
 

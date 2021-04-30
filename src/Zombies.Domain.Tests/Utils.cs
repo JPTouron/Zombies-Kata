@@ -6,6 +6,21 @@ namespace Zombies.Domain.Tests
 {
     internal static class Utils
     {
+        internal static Survivor CreateDeadSurvivor(string name = null)
+        {
+            var survivor = CreateSurvivor(name);
+
+            while (survivor.CurrentState == HealthState.Alive)
+                survivor.Wound(1);
+
+            return survivor;
+        }
+
+        internal static Health CreateHealth()
+        {
+            return new Health();
+        }
+
         internal static InventoryHandler CreateInventoryWithItems(int? size = null)
         {
             var sut = new InventoryHandler();
@@ -30,17 +45,6 @@ namespace Zombies.Domain.Tests
             xp ??= new Experience();
 
             return new Survivor(name, inventoryHandler, health, xp);
-        }
-
-        internal static Experience CreateXP(int experienceValue = 0)
-        {
-            var xp = new Experience();
-
-            if (experienceValue > 0)
-                for (int i = 0; i < experienceValue; i++)
-                    xp.Increase();
-
-            return xp;
         }
     }
 }

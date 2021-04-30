@@ -8,9 +8,11 @@ namespace Zombies.Application
     {
         IReadOnlyCollection<IEquipment> BackPack { get; }
 
+        int BackPackCapacity { get; }
+
         HealthState CurrentState { get; }
 
-        int ExperienceValue { get; }
+        int ExperiencePoints { get; }
 
         IEquipment LeftHandEquip { get; set; }
 

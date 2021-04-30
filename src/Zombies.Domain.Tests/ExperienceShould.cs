@@ -16,34 +16,34 @@ namespace Zombies.Domain.Tests
             for (int i = 0; i < increaseTimes; i++)
                 sut.Increase();
 
-            Assert.Equal(expectedIncreasedExperience, sut.ExperienceValue);
+            Assert.Equal(expectedIncreasedExperience, sut.ExperiencePoints);
         }
 
         [Theory]
         [InlineData(new object[] { 6, 6, 18 })]
         [InlineData(new object[] { 18, 18, 42 })]
         [InlineData(new object[] { 42, 42, 42 })]
-        public void LevelUpWhenNextLevelValueIsReached(int increaseTimes, int expectedLevel, int expectedMaxValue)
+        public void LevelUpWhenNextLevelExperiencePointsAreReached(int increaseTimes, int expectedLevel, int expectedMaxPoints)
         {
             var sut = new Experience();
 
             for (int i = 0; i < increaseTimes; i++)
                 sut.Increase();
 
-            Assert.Equal(expectedLevel, sut.ExperienceValue);
+            Assert.Equal(expectedLevel, sut.ExperiencePoints);
             Assert.Equal((XpLevel)expectedLevel, sut.Level);
-            Assert.Equal(expectedMaxValue, sut.MaxValue);
+            Assert.Equal(expectedMaxPoints, sut.MaxLevelPoints);
         }
 
         public class BeCreated
         {
             [Fact]
-            public void WithZeroValueAndLevelBlueAndMaxValueSix()
+            public void WithZeroExperiencePointsAndLevelBlueAndMaxLevelPointsSix()
             {
                 var sut = new Experience();
 
-                Assert.Equal(0, sut.ExperienceValue);
-                Assert.Equal(6, sut.MaxValue);
+                Assert.Equal(0, sut.ExperiencePoints);
+                Assert.Equal(6, sut.MaxLevelPoints);
                 Assert.Equal(XpLevel.Blue, sut.Level);
             }
         }

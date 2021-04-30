@@ -14,12 +14,20 @@
 
         public void Wound(int inflictedWounds)
         {
-            Wounds += inflictedWounds;
-            if (Wounds > 2)
-                Wounds = 2;
+            if (AreThereWounds(inflictedWounds))
+            {
+                Wounds += inflictedWounds;
+                if (Wounds > 2)
+                    Wounds = 2;
 
-            if (Wounds == 2)
-                CurrentState = HealthState.Dead;
+                if (Wounds == 2)
+                    CurrentState = HealthState.Dead;
+            }
+        }
+
+        private bool AreThereWounds(int inflictedWounds)
+        {
+            return inflictedWounds > 0;
         }
     }
 }

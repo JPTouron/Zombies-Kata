@@ -11,7 +11,7 @@ namespace Zombies.Application
             Finished
         }
 
-        int ExperienceValue { get; }
+        int ExperiencePoints { get; }
 
         XpLevel Level { get; }
 

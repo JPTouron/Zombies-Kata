@@ -27,7 +27,7 @@ namespace Zombies.Domain.Tests
         [InlineData(new object[] { 1, 1 })]
         [InlineData(new object[] { 3, 3 })]
         [InlineData(new object[] { 10, 10 })]
-        public void IncreaseExperienceByOneWhenKillingAZombie(int zombiesKilled, int experienceGained)
+        public void IncreaseExperiencePointsByOneWhenKillingAZombie(int zombiesKilled, int experienceGained)
         {
             var sut = Utils.CreateSurvivor();
 
@@ -58,6 +58,40 @@ namespace Zombies.Domain.Tests
         }
 
         [Fact]
+        public void NotBeAbleToAddEquipmentWhenDead()
+        {
+            var sut = Utils.CreateDeadSurvivor();
+            var initialInventoryCount = sut.BackPack.Count;
+
+            var e = new Fixture().Create<Equipment>();
+            sut.AddEquipment(e);
+
+            Assert.Equal(initialInventoryCount, sut.BackPack.Count);
+        }
+
+        [Fact]
+        public void NotBeAbleToHaveMoreWoundsWhenDead()
+        {
+            var sut = Utils.CreateDeadSurvivor();
+            var expectedMaxWounds = sut.Wounds;
+
+            sut.Wound(1);
+
+            Assert.Equal(expectedMaxWounds, sut.Wounds);
+        }
+
+        [Fact]
+        public void NotBeAbleToKillWhenDead()
+        {
+            var sut = Utils.CreateDeadSurvivor();
+            var initialXpValue = sut.ExperienceValue;
+
+            sut.Kill(new Zombie());
+
+            Assert.Equal(initialXpValue, sut.ExperienceValue);
+        }
+
+        [Fact]
         public void NotDieWhenASingleWoundIsInflicted()
         {
             var inflictedWounds = 1;
@@ -70,6 +104,17 @@ namespace Zombies.Domain.Tests
         }
 
         [Fact]
+        public void NotHaveItsInventoryCapacityWhenDead()
+        {
+            var sut = Utils.CreateDeadSurvivor();
+            var expectedCapacity = sut.BackPackCapacity;
+
+            sut.Wound(1);
+
+            Assert.Equal(expectedCapacity, sut.BackPackCapacity);
+        }
+
+        [Fact]
         public void NotHaveMoreThanTwoWounds()
         {
             var inflictedWounds = 15;
@@ -79,21 +124,6 @@ namespace Zombies.Domain.Tests
 
             sut.Wound(inflictedWounds);
 
-            Assert.Equal(expectedMaxWounds, sut.Wounds);
-        }
-
-        [Fact]
-        public void NotHaveMoreWoundsAfterDeath()
-        {
-            var inflictedWounds = 15;
-            var expectedMaxWounds = 2;
-
-            var sut = Utils.CreateSurvivor();
-
-            sut.Wound(inflictedWounds);
-            Assert.Equal(HealthState.Dead, sut.CurrentState);
-
-            sut.Wound(inflictedWounds);
             Assert.Equal(expectedMaxWounds, sut.Wounds);
         }
 
@@ -159,7 +189,7 @@ namespace Zombies.Domain.Tests
                 var name = "JP";
                 var expectedWounds = 0;
                 var expectedInventoryCount = 0;
-                var expectedExperience = 0;
+                var expectedExperiencePoints = 0;
                 var expectedXPLevel = XpLevel.Blue;
                 var expectedRemainingActions = 3;
                 var expectedState = HealthState.Alive;
@@ -171,7 +201,7 @@ namespace Zombies.Domain.Tests
                 Assert.Equal(expectedRemainingActions, sut.RemainingActions);
                 Assert.Equal(expectedState, sut.CurrentState);
                 Assert.Equal(expectedInventoryCount, sut.BackPack.Count);
-                Assert.Equal(expectedExperience, sut.ExperienceValue);
+                Assert.Equal(expectedExperiencePoints, sut.ExperienceValue);
                 Assert.Equal(expectedXPLevel, sut.Level);
             }
 

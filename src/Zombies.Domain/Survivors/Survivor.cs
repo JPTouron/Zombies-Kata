@@ -6,7 +6,6 @@ using Zombies.Domain.Gear;
 
 namespace Zombies.Domain.Survivors
 {
-    //JP: MISSING TEST: IF A SURVIVOR IS DEAD, IT CANNOT DO SHIT!
     public sealed class Survivor : IAggregateRoot
     {
         private readonly Experience experience;
@@ -30,6 +29,8 @@ namespace Zombies.Domain.Survivors
         }
 
         public IReadOnlyCollection<IEquipment> BackPack => inventory.Items;
+
+        public int BackPackCapacity => inventory.Capacity;
 
         public IEquipment LeftHandEquip
         {
@@ -58,7 +59,7 @@ namespace Zombies.Domain.Survivors
 
         public HealthState CurrentState => health.CurrentState;
 
-        public int ExperienceValue => experience.ExperienceValue;
+        public int ExperienceValue => experience.ExperiencePoints;
 
         public XpLevel Level => experience.Level;
 
@@ -66,18 +67,28 @@ namespace Zombies.Domain.Survivors
 
         public void AddEquipment(IEquipment equipment)
         {
-            inventory.AddEquipment(equipment);
+            if (SurvivorIsAlive())
+                inventory.AddEquipment(equipment);
         }
 
         public void Kill(Zombie zombie)
         {
-            experience.Increase();
+            if (SurvivorIsAlive())
+                experience.Increase();
         }
 
         public void Wound(int inflictedWounds)
         {
-            health.Wound(inflictedWounds);
-            inventory.ReduceCapacityBy(1);
+            if (SurvivorIsAlive())
+            {
+                health.Wound(inflictedWounds);
+                inventory.ReduceCapacityBy(1);
+            }
+        }
+
+        private bool SurvivorIsAlive()
+        {
+            return CurrentState == HealthState.Alive;
         }
 
         private void ValidateEquipmentExistsInInventory(IEquipment value)

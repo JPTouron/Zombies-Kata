@@ -16,11 +16,13 @@ namespace Zombies.Domain.Survivors
             InitializeItems(initialMaxCapacity);
         }
 
+        public int Capacity => CurrentCapacity();
+
         public IReadOnlyCollection<IEquipment> Items
         {
             get
             {
-                var result = items.Where(x => x.IsUsed && x.IsEnabled).Select(x => x.Equipment).ToList();
+                var result = items.Where(x => x.HasEquipment && x.IsEnabled).Select(x => x.Equipment).ToList();
 
                 return result;
             }
@@ -48,21 +50,12 @@ namespace Zombies.Domain.Survivors
         {
             if (reduction > 0)
             {
-                var currentCapacity = CurrentCapacity();
-
-                if (reduction >= currentCapacity)
+                if (ReductionExceedsCurrentCapacity(reduction))
                     ClearCapacity();
                 else
                 {
-                    if (items.Any(x => x.IsEnabled))
-                    {
-                        var sorted = items.OrderBy(x => x.IsUsed).ToList();
-
-                        for (int i = 0; i < reduction; i++)
-                        {
-                            sorted[i].IsEnabled = false;
-                        }
-                    }
+                    if (ThereAreAnyEnabledSlots())
+                        ReduceCapacity(reduction);
                 }
             }
         }
@@ -81,7 +74,7 @@ namespace Zombies.Domain.Survivors
 
         private IEnumerable<InventorySlot> GetAvailableSlots()
         {
-            return items.Where(x => x.IsEnabled && !x.IsUsed);
+            return items.Where(x => x.IsEnabled && !x.HasEquipment);
         }
 
         private void InitializeItems(int initialMaxCapacity)
@@ -90,6 +83,26 @@ namespace Zombies.Domain.Survivors
 
             for (int i = 0; i < initialMaxCapacity; i++)
                 items.Add(new InventorySlot(new NoEquipment()));
+        }
+
+        private void ReduceCapacity(int reduction)
+        {
+            var itemsSortedByHavingEquipment = items.OrderBy(x => x.HasEquipment).ToList();
+
+            for (int i = 0; i < reduction; i++)
+            {
+                itemsSortedByHavingEquipment[i].IsEnabled = false;
+            }
+        }
+
+        private bool ReductionExceedsCurrentCapacity(int reduction)
+        {
+            return reduction >= CurrentCapacity();
+        }
+
+        private bool ThereAreAnyEnabledSlots()
+        {
+            return items.Any(x => x.IsEnabled);
         }
 
         private class InventorySlot
@@ -104,6 +117,8 @@ namespace Zombies.Domain.Survivors
 
             public IEquipment Equipment { get; set; }
 
+            public bool HasEquipment => Equipment is NoEquipment == false;
+
             public bool IsEnabled
             {
                 get => isEnabled;
@@ -114,8 +129,6 @@ namespace Zombies.Domain.Survivors
                     isEnabled = value;
                 }
             }
-
-            public bool IsUsed => Equipment is NoEquipment == false;
         }
     }
 }

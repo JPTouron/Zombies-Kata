@@ -4,29 +4,29 @@
     {
         public Experience()
         {
-            ExperienceValue = 0;
+            ExperiencePoints = 0;
         }
 
-        public int ExperienceValue { get; private set; }
+        public int ExperiencePoints { get; private set; }
 
         public XpLevel Level
         {
             get
             {
-                if (ExperienceValue < (int)XpLevel.Yellow)
+                if (ExperiencePoints < (int)XpLevel.Yellow)
                     return XpLevel.Blue;
 
-                if (ExperienceValue < (int)XpLevel.Orange)
+                if (ExperiencePoints < (int)XpLevel.Orange)
                     return XpLevel.Yellow;
 
-                if (ExperienceValue < (int)XpLevel.Red)
+                if (ExperiencePoints < (int)XpLevel.Red)
                     return XpLevel.Orange;
 
                 return XpLevel.Red;
             }
         }
 
-        public int MaxValue
+        public int MaxLevelPoints
         {
             get
             {
@@ -42,7 +42,7 @@
 
         public void Increase()
         {
-            ExperienceValue++;
+            ExperiencePoints++;
         }
     }
 }

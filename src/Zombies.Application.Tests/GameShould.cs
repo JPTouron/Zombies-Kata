@@ -1,17 +1,106 @@
 ﻿using AutoFixture;
+using Moq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using Xunit;
+using Zombies.Application.History;
 using Zombies.Application.History.EventMessages;
 using Zombies.Domain;
 using static Zombies.Application.IGame;
 
 namespace Zombies.Application.Tests
 {
-    //JP: ADD TESTS FOR APPLICATION.PROVIDERS
     public class GameShould
     {
+
+        public class RecordHistory {
+            Mock<IGameHistoricEvents> historyRecorder;
+            public RecordHistory()
+            {
+                historyRecorder = new Fixture().Create<Mock<IGameHistoricEvents>>();
+
+            }
+            [Fact]
+            public void WhenGameStarts()
+            {
+
+                var sut = Utils.CreateGame(historyRecorder.Object);
+
+                historyRecorder.Verify(x => x.GameStarted(), Times.Once);
+            }
+            [Fact]
+            public void WhenAddingASurvivor()
+            {
+
+                var sut = Utils.CreateGame(historyRecorder.Object);
+                var s = sut.AddSurvivor(new Fixture().Create<string>());
+
+                historyRecorder.Verify(x => x.SurvivorAdded(s), Times.Once);
+            }
+
+            [Fact]
+            public void WhenGamesFinishes()
+            {
+
+                var sut = Utils.CreateGame(historyRecorder.Object);
+                var s = sut.AddSurvivor(new Fixture().Create<string>());
+                while (s.CurrentState == HealthState.Alive)
+                    s.Wound(1);
+
+                historyRecorder.Verify(x => x.GameFinished(), Times.Once);
+            }
+
+            [Fact]
+            public void WhenGameLevelsUp()
+            {
+
+                var sut = Utils.CreateGame(historyRecorder.Object);
+                var s = sut.AddSurvivor(new Fixture().Create<string>());
+                
+                var initialLevel = s.Level;                
+                while (s.Level == initialLevel)
+                    s.Kill(new Zombie());
+
+                var expectedRecordedLevel = s.Level;
+
+                historyRecorder.Verify(x => x.GameLeveledUp(expectedRecordedLevel), Times.Once);
+            }
+
+
+            [Fact]
+            public void EventsInOrder()
+            {
+                var recorder = HistoryRecorder.Instance();
+
+                recorder.Events.Clear();
+
+                var sut = Utils.CreateGame(recorder);
+
+                var survivor = sut.AddSurvivor(new Fixture().Create<string>());
+                survivor.Wound(2);
+
+                var expectedOrderedMessages =
+                    new Dictionary<int, string>(
+                        new List<KeyValuePair<int, string>> {
+                        new KeyValuePair<int, string>(0,new GameStartedEventMessage().Message),
+                        new KeyValuePair<int, string>(1,new SurvivorAddedToGameEventMessage(survivor).Message),
+                        new KeyValuePair<int, string>(2,new SurvivorWoundedEventMessage(survivor).Message),
+                        new KeyValuePair<int, string>(3,new SurvivorDiedEventMessage(survivor).Message),
+                        new KeyValuePair<int, string>(4,new GameFinishedEventMessage().Message)
+                    });
+
+                var history = sut.Events;
+
+                Assert.Equal(5, history.Count);
+
+                for (int i = 0; i < history.Count; i++)
+                    Assert.Equal(expectedOrderedMessages[i], history[i].Message);
+            }
+
+        }
+
+
         [Fact]
         public void BeAbleToAddANewSurivor()
         {
@@ -42,28 +131,33 @@ namespace Zombies.Application.Tests
 
         [Theory]
         [ClassData(typeof(ExperienceTestsProvider))]
-        public void GameAlwaysHaveTheSameXpLevelAndExperienceValueAsTheMaxedLeveledUpSurvivor(int xpSurvivor1, int xpSurvivor2, int xpSurvivor3, int expectedGameExperience, XpLevel expectedGameXpLevel)
+        public void GameAlwaysHaveTheSameXpLevelAndExperienceValueAsTheMaxedLeveledUpSurvivor(
+            int survivor1XpPoints, 
+            int survivor2XpPoints, 
+            int survivor3XpPoints,
+            int expectedGameExperience, 
+            XpLevel expectedGameXpLevel)
         {
             var sut = Utils.CreateGame();
             var survivor1 = sut.AddSurvivor(new Fixture().Create<string>());
             var survivor2 = sut.AddSurvivor(new Fixture().Create<string>());
             var survivor3 = sut.AddSurvivor(new Fixture().Create<string>());
 
-            for (int i = 0; i < xpSurvivor1; i++)
+            for (int i = 0; i < survivor1XpPoints; i++)
                 survivor1.Kill(new Zombie());
 
-            for (int i = 0; i < xpSurvivor2; i++)
+            for (int i = 0; i < survivor2XpPoints; i++)
                 survivor2.Kill(new Zombie());
 
-            for (int i = 0; i < xpSurvivor3; i++)
+            for (int i = 0; i < survivor3XpPoints; i++)
                 survivor3.Kill(new Zombie());
 
-            Assert.Equal(expectedGameExperience, sut.ExperienceValue);
+            Assert.Equal(expectedGameExperience, sut.ExperiencePoints);
             Assert.Equal(expectedGameXpLevel, sut.Level);
         }
 
         [Fact]
-        public void GameEndsWhenAllSuvivorsDie()
+        public void GameFinishessWhenAllSuvivorsDie()
         {
             var sut = Utils.CreateGame();
 
@@ -78,30 +172,6 @@ namespace Zombies.Application.Tests
             Assert.Equal(GameState.Finished, sut.State);
         }
 
-        [Fact]
-        public void RecordHistoricEventsInOrder()
-        {
-            var sut = Utils.CreateGame();
-
-            var survivor = sut.AddSurvivor(new Fixture().Create<string>());
-            survivor.Wound(2);
-
-            var expectedOrderedMessages =
-                new Dictionary<int, string>(
-                    new List<KeyValuePair<int, string>> {
-                        new KeyValuePair<int, string>(0,new GameStartedEventMessage().Message),
-                        new KeyValuePair<int, string>(1,new SurvivorAddedToGameEventMessage(survivor).Message),
-                        new KeyValuePair<int, string>(2,new SurvivorWoundedEventMessage(survivor).Message),
-                        new KeyValuePair<int, string>(3,new SurvivorDiedEventMessage(survivor).Message),
-                        new KeyValuePair<int, string>(4,new GameFinishedEventMessage().Message)
-                });
-
-            var history = sut.Events;
-
-            Assert.Equal(5, history.Count);
-            for (int i = 0; i < history.Count; i++)
-                Assert.Equal(expectedOrderedMessages[i], history[i].Message);
-        }
 
         [Fact]
         public void ThrowWhenAddingANullSurvivor()
@@ -132,7 +202,7 @@ namespace Zombies.Application.Tests
 
                 Assert.Equal(0, sut.SurvivorCount);
                 Assert.Equal(GameState.Finished, sut.State);
-                Assert.Equal(0, sut.ExperienceValue);
+                Assert.Equal(0, sut.ExperiencePoints);
                 Assert.Equal(XpLevel.Blue, sut.Level);
             }
         }
