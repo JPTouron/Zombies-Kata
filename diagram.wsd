@@ -2,242 +2,250 @@
 
 title "Zombies Class diagram"
 
+package Domain{
 
-frame Gear{
+    frame Gear{
 
-    interface IEquipment{
-        +string Name { get; }
+        interface IEquipment{
+            +string Name { get; }
+        }
+
+        abstract class EquipmentBase
+        {
+            +string Name {get;}
+        }
+        IEquipment <|--EquipmentBase
+
+        class NoEquipment
+        {
+            +string Name {get;}
+        }
+
+        note right
+            ""Name => string.empty""
+        end note
+
+        EquipmentBase <|-right- NoEquipment
+
+
+        class Equipment
+        {
+            +ctor(string Name)
+            __
+            +string Name {get;}
+        }
+
+        EquipmentBase <|-- Equipment
     }
 
-    abstract class EquipmentBase
-    {
-        +string Name {get;}
+    frame Inventory{
+
+        interface IInventoryHandler
+        {
+            +IReadOnlyCollection<IEquipment> Items { get; }
+            +void AddEquipment(IEquipment equipment)
+            +bool ContainsEquipment(IEquipment equipment)
+            +void ReduceCapacityBy(int reduction)
+        }
+
+        class InventoryProvider{
+            +IInventoryHandler GetInventory()
+        }
+        note left
+            //factory class//
+        end note
+        IInventoryHandler o-left- InventoryProvider
+
+        class InventoryHandler
+        {
+            -int capacity
+            -IList<Equipment> items;
+            ..
+            +ctor()
+            __
+            +IReadOnlyCollection<Equipment> Items {get;}
+            ..
+            +void AddEquipment(Equipment equipment)
+            +void ReduceCapacityBy(int reduction)
+            +bool ContainsEquipment(Equipment equipment)
+        }
+
+        note right
+            manages all the equipment
+            a Survivor may carry
+            In Hand or In Reserve
+
+            ""ReduceCapacityBy(...)""
+            //would loose a random equipment//
+        end note
+
+        IInventoryHandler <|- InventoryHandler
+        Equipment *-- InventoryHandler
     }
-    IEquipment <|--EquipmentBase
 
-    class NoEquipment
-    {
-        +string Name {get;}
+    frame Health {
+
+        enum State{
+            +Alive
+            +Dead
+        }
+
+        interface IHealth
+        {
+            +State CurrentState  { get; }
+            +int Wounds { get;}
+            +Wound(int inflictedWounds)
+        }
+
+        class Health
+        {
+            +ctor()
+            __
+            +State CurrentState { get; private set; }
+            +int Wounds { get; private set;}
+            +Wound(int inflictedWounds)
+        }
+
+        note right
+            "" Wound() ""
+            "" if inflictedWounds < 2 => Dead""
+        end note
+
+        State *-up- Health
+        IHealth <|- Health
     }
 
-    note right
-        ""Name => string.empty""
-    end note
+    frame XP {
+        enum XpLevel
+        {
+            +Blue
+            +Yellow
+            +Orange
+            +Red
+        }
 
-    EquipmentBase <|-right- NoEquipment
 
 
-    class Equipment
+        class Experience
+        {
+            +ctor()
+            __
+            +XpLevel Level {get}
+            +int Value {get}
+            +int MaxValue {get}
+            +int Increase()
+        }
+        note left
+            <b>Value starts at zero</b>
+
+            * When a Survivor exceeds 6 Experience, they advance to level //Yellow//
+            * When a Survivor exceeds 18 Experience, they advance to level //Orange//
+            * When a Survivor exceeds 42 Experience, they advance to level //Red//
+
+            Value holds the current xp value
+            MaxValue  holds the value when we level up in the current level (6,18, 42, etc...)
+
+            ""Increase()""
+            //only increases by one//
+        end note
+
+        XpLevel *-down- Experience
+        IExperience <|-left- Experience
+    }
+
+    interface IExperience{
+        +int Experience {get}
+        +XpLevel XpLevel {get}
+    }
+
+    class Survivor
     {
-        +ctor(string Name)
+        -InventoryHandler InventoryHandler
+        -const int capacityReductionPerWound = 1
+        -IEquipment rightHandEquip
+        -IEquipment leftHandEquip
+        ..
+        +ctor(string name)
         __
         +string Name {get;}
-    }
-
-    EquipmentBase <|-- Equipment
-}
-
-frame Inventory{
-
-    interface IInventoryHandler
-    {
-        +IReadOnlyCollection<IEquipment> Items { get; }
-        +void AddEquipment(IEquipment equipment)
-        +bool ContainsEquipment(IEquipment equipment)
-        +void ReduceCapacityBy(int reduction)
-    }
-
-    class InventoryProvider{
-        +IInventoryHandler GetInventory()
-    }
-    note left
-        //factory class//
-    end note
-    IInventoryHandler o-left- InventoryProvider
-
-    class InventoryHandler
-    {
-        -int capacity
-        -IList<Equipment> items;
-        ..
-        +ctor()
-        __
-        +IReadOnlyCollection<Equipment> Items {get;}
-        ..
-        +void AddEquipment(Equipment equipment)
-        +void ReduceCapacityBy(int reduction)
-        +bool ContainsEquipment(Equipment equipment)
-    }
-
-    note right
-        manages all the equipment
-        a Survivor may carry
-        In Hand or In Reserve
-
-        ""ReduceCapacityBy(...)""
-        //would loose a random equipment//
-    end note
-
-    IInventoryHandler <|- InventoryHandler
-    Equipment *-- InventoryHandler
-}
-
-frame Health {
-
-    enum State{
-        +Alive
-        +Dead
-    }
-
-    interface IHealth
-    {
+        +int RemainingActions  { get; }
+        --
         +State CurrentState  { get; }
-        +int Wounds { get;}
-        +Wound(int inflictedWounds)
+        +int Wounds { get; }
+        ..
+        +void Wound(int inflictedWounds)
+        +void AddEquipment(IEquipment equipment);
+        ..
+        +IEquipment RightHandEquip {get;set;}
+        +IEquipment LeftHandEquip {get;set;}
+        +IReadOnlyCollection<IEquipment> Items {get;}
+        ..
+        +int Experience {get}
+        +XpLevel XpLevel {get}
+        ..
+        +void Kill(Zombie zombie)
     }
 
-    class Health
-    {
-        +ctor()
-        __
-        +State CurrentState { get; private set; }
-        +int Wounds { get; private set;}
-        +Wound(int inflictedWounds)
-    }
-
-    note right
-        "" Wound() ""
-        "" if inflictedWounds < 2 => Dead""
-    end note
-
-    State *-up- Health
-    IHealth <|- Health
-}
-
-frame XP {
-    enum XpLevel
-    {
-        +Blue
-        +Yellow
-        +Orange
-        +Red
-    }
-
-
-
-    class Experience
-    {
-        +ctor()
-        __
-        +XpLevel Level {get}
-        +int Value {get}
-        +int MaxValue {get}
-        +int Increase()
-    }
     note left
-        <b>Value starts at zero</b>
+        // Survivor would be initialized with: zero wounds, //
+        // three remaining actions, Alive CurrentState //
 
-        * When a Survivor exceeds 6 Experience, they advance to level //Yellow//
-        * When a Survivor exceeds 18 Experience, they advance to level //Orange//
-        * When a Survivor exceeds 42 Experience, they advance to level //Red//
+        "" AddEquipment(..) ""
+        // InventoryHandler.Add...//
 
-        Value holds the current xp value
-        MaxValue  holds the value when we level up in the current level (6,18, 42, etc...)
-
-        ""Increase()""
-        //only increases by one//
+        ""Items""
+        // All available items //
     end note
 
-    XpLevel *-down- Experience
-    IExperience <|-left- Experience
+    Health +-up- Survivor
+    IHealth <|- Survivor
+    Experience +-- Survivor
+    IExperience <|-- Survivor
+    InventoryHandler +-- Survivor
+
+
+    class Zombie {
+
+    }
+    note right
+        placeholder, we don't have info on this
+    end note
+
+
+
+
+
+
 }
 
-interface IExperience{
-    +int Experience {get}
-    +XpLevel XpLevel {get}
-}
+package Application{
+    enum GameState{
+        +OnGoing
+        +Finished
+    }
+    class Game
+    {
+        -IList<Survivor> survivors
+        ....
+        +GameState State
+        +int SurvivorCount
+        +void AddSurvivor(Survivor survivor)
+        --
+        +int Experience {get}
+        +XpLevel Level {get}
+    }
 
-class Survivor
-{
-    -InventoryHandler InventoryHandler
-    -const int capacityReductionPerWound = 1
-    -IEquipment rightHandEquip
-    -IEquipment leftHandEquip
-    ..
-    +ctor(string name)
-    __
-    +string Name {get;}
-    +int RemainingActions  { get; }
-    --
-    +State CurrentState  { get; }
-    +int Wounds { get; }
-    ..
-    +void Wound(int inflictedWounds)
-    +void AddEquipment(IEquipment equipment);
-    ..
-    +IEquipment RightHandEquip {get;set;}
-    +IEquipment LeftHandEquip {get;set;}
-    +IReadOnlyCollection<IEquipment> Items {get;}
-    ..
-    +int Experience {get}
-    +XpLevel XpLevel {get}
-    ..
-    +void Kill(Zombie zombie)
-}
+    note left
+        ""Experience""
+        // would have to perform a calculation to get the ""Experience.Value"" from the most leveled up survivor //
 
-note left
-    // Survivor would be initialized with: zero wounds, //
-    // three remaining actions, Alive CurrentState //
+        ""XpLevel""
+        // same calculation as for ""Experience"" //
+    end note
 
-    "" AddEquipment(..) ""
-    // InventoryHandler.Add...//
-
-    ""Items""
-    // All available items //
-end note
-
-Health +-up- Survivor
-IHealth <|- Survivor
-Experience *-- Survivor
-IExperience <|-- Survivor
-InventoryHandler +-- Survivor
-
-
-class Zombie {
+    Survivor <-- Game
+    GameState *-up- Game
+    IExperience <|-- Game
 
 }
-note right
-    placeholder, we don't have info on this
-end note
-
-enum GameState{
-    +OnGoing
-    +Finished
-}
-
-class Game
-{
-    -IList<Survivor> survivors
-    ....
-    +GameState State
-    +int SurvivorCount
-    +void AddSurvivor(Survivor survivor)
-    --
-    +int Experience {get}
-    +XpLevel Level {get}
-}
-
-note right
-    ""Experience""
-    // would have to perform a calculation to get the ""Experience.Value"" from the most leveled up survivor //
-
-    ""XpLevel""
-    // same calculation as for ""Experience"" //
-end note
-
-Survivor o- Game
-GameState *-up- Game
-Experience *-- Game
-IExperience <|-- Game
-
 @enduml
