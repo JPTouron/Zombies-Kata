@@ -2,7 +2,7 @@
 
 namespace Zombies.Domain.Gear.Base
 {
-    internal abstract class EquipmentBase : ValueObject<EquipmentBase>, IEquipment
+    public abstract class EquipmentBase : ValueObject<EquipmentBase>, IEquipment
     {
         public string Name { get; protected set; }
 

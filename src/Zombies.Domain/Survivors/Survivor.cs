@@ -3,24 +3,19 @@ using System;
 using System.Collections.Generic;
 using Zombies.Domain.BuildingBocks;
 using Zombies.Domain.Gear;
-using Zombies.Domain.Inventory;
-using static Zombies.Domain.IHealth;
 
-namespace Zombies.Domain
+namespace Zombies.Domain.Survivors
 {
-
-
-    
-
-    internal class Survivor : IAggregateRoot, IHealth, IExperience, ISurvivor
+    //JP: MISSING TEST: IF A SURVIVOR IS DEAD, IT CANNOT DO SHIT!
+    public sealed class Survivor : IAggregateRoot
     {
-        private readonly ISurvivorExperience experience;
-        private readonly IHealth health;
-        private readonly IInventoryHandler inventory;
+        private readonly Experience experience;
+        private readonly Health health;
+        private readonly InventoryHandler inventory;
         private IEquipment leftHandEquip;
         private IEquipment rightHandEquip;
 
-        public Survivor(string name, IInventoryHandler inventory, IHealth health, ISurvivorExperience experience)
+        public Survivor(string name, InventoryHandler inventory, Health health, Experience experience)
         {
             Guard.Against.NullOrWhiteSpace(name, nameof(name));
             Guard.Against.Null(inventory, nameof(inventory));
@@ -61,7 +56,7 @@ namespace Zombies.Domain
             }
         }
 
-        public State CurrentState => health.CurrentState;
+        public HealthState CurrentState => health.CurrentState;
 
         public int ExperienceValue => experience.ExperienceValue;
 

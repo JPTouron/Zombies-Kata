@@ -2,15 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Zombies.Domain.BuildingBocks;
 using Zombies.Domain.Gear;
 
-namespace Zombies.Domain.Inventory
+namespace Zombies.Domain.Survivors
 {
-    internal sealed class InventoryHandler : IInventoryHandler,IAggregateRoot
+    public sealed class InventoryHandler
     {
         private const int initialMaxCapacity = 5;
-        private const int maxCapacity = 5;
         private IList<InventorySlot> items;
 
         public InventoryHandler()

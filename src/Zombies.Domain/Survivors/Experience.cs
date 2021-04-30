@@ -1,32 +1,6 @@
-﻿namespace Zombies.Domain
+﻿namespace Zombies.Domain.Survivors
 {
-    public interface IExperience
-    {
-        int ExperienceValue { get; }
-
-        XpLevel Level { get; }
-    }
-
-    public enum XpLevel
-    {
-        Blue = 0,
-        Yellow = 6,
-        Orange = 18,
-        Red = 42
-    }
-
-    public interface ISurvivorExperience
-    {
-        int ExperienceValue { get; }
-        XpLevel Level { get; }
-        int MaxValue { get; }
-    void Increase();
-
-        
-    }
-
-
-    internal class Experience : IExperience, ISurvivorExperience
+    public sealed class Experience
     {
         public Experience()
         {
