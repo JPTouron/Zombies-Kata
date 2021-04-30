@@ -21,7 +21,7 @@ namespace Zombies.Application
         string Name { get; }
 
         int RemainingActions { get; }
-
+        
         IEquipment RightHandEquip { get; set; }
 
         int Wounds { get; }

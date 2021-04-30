@@ -26,19 +26,25 @@ namespace Zombies.Domain.Survivors
             this.inventory = inventory;
             this.health = health;
             this.experience = experience;
+
+            leftHandEquip = new NoEquipment();
+            rightHandEquip = new NoEquipment();
         }
 
         public IReadOnlyCollection<IEquipment> BackPack => inventory.Items;
 
         public int BackPackCapacity => inventory.Capacity;
 
+        public int ExperienceValue => experience.ExperiencePoints;
+
         public IEquipment LeftHandEquip
         {
             get => leftHandEquip; set
             {
                 ValidateEquipmentExistsInInventory(value);
-
                 leftHandEquip = value;
+
+                SwitchFromRightHandIfRequired(value);
             }
         }
 
@@ -52,14 +58,13 @@ namespace Zombies.Domain.Survivors
             set
             {
                 ValidateEquipmentExistsInInventory(value);
-
                 rightHandEquip = value;
+
+                SwitchFromLeftHandIfRequired(value);
             }
         }
 
         public HealthState CurrentState => health.CurrentState;
-
-        public int ExperienceValue => experience.ExperiencePoints;
 
         public XpLevel Level => experience.Level;
 
@@ -89,6 +94,18 @@ namespace Zombies.Domain.Survivors
         private bool SurvivorIsAlive()
         {
             return CurrentState == HealthState.Alive;
+        }
+
+        private void SwitchFromLeftHandIfRequired(IEquipment value)
+        {
+            if (leftHandEquip == value)
+                leftHandEquip = new NoEquipment();
+        }
+
+        private void SwitchFromRightHandIfRequired(IEquipment value)
+        {
+            if (rightHandEquip == value)
+                rightHandEquip = new NoEquipment();
         }
 
         private void ValidateEquipmentExistsInInventory(IEquipment value)

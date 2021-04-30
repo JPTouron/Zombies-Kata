@@ -1,9 +1,9 @@
-﻿using Zombies.Application.History;
+﻿using Zombies.Application.HistoryRecording.GameHistory.Public;
 using Zombies.Domain;
 
 namespace Zombies.Application
 {
-    public interface IGame : IGameHistory
+    public interface IGame : IGameHistoryListable
     {
         public enum GameState
         {

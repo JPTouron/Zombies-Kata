@@ -6,7 +6,7 @@ namespace Zombies.Domain.Gear
     {
         public NoEquipment()
         {
-            Name = string.Empty;
+            Name = "Nothing";
         }
     }
 }

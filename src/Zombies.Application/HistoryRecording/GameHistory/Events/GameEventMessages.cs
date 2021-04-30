@@ -1,18 +1,23 @@
 ﻿using Zombies.Domain;
 
-namespace Zombies.Application.History.EventMessages
+namespace Zombies.Application.HistoryRecording.GameHistory.Events
 {
-    internal abstract class GameEventMessage
+    public abstract class GameEventMessageBase
     {
         public abstract string Message { get; }
+
+        public static implicit operator string(GameEventMessageBase msg)
+        {
+            return msg.Message;
+        }
     }
 
-    internal sealed class GameFinishedEventMessage : GameEventMessage
+    public sealed class GameFinishedEventMessage : GameEventMessageBase
     {
         public override string Message => $"Game has ended, no more survivors are left!";
     }
 
-    internal sealed class GameLeveledUpEventMessage : GameEventMessage
+    public sealed class GameLeveledUpEventMessage : GameEventMessageBase
     {
         private readonly XpLevel level;
 
@@ -24,7 +29,7 @@ namespace Zombies.Application.History.EventMessages
         public override string Message => $"Game reached {level} level!";
     }
 
-    internal sealed class GameStartedEventMessage : GameEventMessage
+    public sealed class GameStartedEventMessage : GameEventMessageBase
     {
         public override string Message => $"A new game has started";
     }

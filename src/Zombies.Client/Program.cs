@@ -18,9 +18,11 @@ namespace Zombies.Client
 
             s.Wound(1);
             s2.Kill(new Zombie());
+            
             var golfClub = Providers.Equipment("golf club");
             s.AddEquipment(golfClub);
             s.RightHandEquip = golfClub;
+
             for (int i = 0; i < 6; i++)
                 s.Kill(new Zombie());
             s.Wound(1);

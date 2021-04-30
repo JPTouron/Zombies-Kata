@@ -10,11 +10,11 @@ namespace Zombies.Domain.Tests
             private NoEquipment sut;
 
             [Fact]
-            public void WithAnEmptyName()
+            public void WithNameAsNothing()
             {
                 sut = new NoEquipment();
 
-                Assert.Equal(string.Empty, sut.Name);
+                Assert.Equal("Nothing", sut.Name);
             }
         }
     }

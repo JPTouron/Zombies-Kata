@@ -3,24 +3,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Zombies.Application.History;
+using Zombies.Application.HistoryRecording.GameHistory;
+using Zombies.Application.HistoryRecording.GameHistory.Events;
+using Zombies.Application.HistoryRecording.GameHistory.Public;
+using Zombies.Application.HistoryRecording.Recorder;
+using Zombies.Application.HistoryRecording.SuvivorHistory;
 using Zombies.Domain;
 using static Zombies.Application.IGame;
 
 namespace Zombies.Application
 {
-    internal class Game : IGameEventsSubscriber, IGame
+    internal class Game : ISurvivorEventsSubscriber, IGame
     {
-        private readonly IGameHistoricEvents historicEvents;
+        private readonly IGameEventsRecorder gameEventsRecorder;
         private XpLevel? currentXPLevel;
         private IList<ISurvivor> survivors;
 
-        public Game(IGameHistoricEvents historicEvents)
+        public Game(IGameEventsRecorder gameEventsRecorder)
         {
             survivors = new List<ISurvivor>();
             currentXPLevel = null;
-            this.historicEvents = historicEvents;
-            historicEvents.GameStarted();
+            this.gameEventsRecorder = gameEventsRecorder;
+            gameEventsRecorder.GameStarted();
         }
 
         public GameState State
@@ -36,7 +40,7 @@ namespace Zombies.Application
 
         public int SurvivorCount => survivors.Count;
 
-        public IList<HistoryRecord> Events => ((IGameHistory)historicEvents).Events;
+        public IList<HistoryRecord> Events => ((IGameHistoryListable)gameEventsRecorder).Events;
 
         public int ExperiencePoints => MaxOrDefault(survivors, x => x.ExperiencePoints);
 
@@ -54,24 +58,24 @@ namespace Zombies.Application
 
             SubscribeToSurivorEvents(survivor);
 
-            historicEvents.SurvivorAdded(survivor);
+            gameEventsRecorder.SurvivorAdded(survivor);
 
             return survivor;
         }
 
-        public void SurvivorDiedNotificationHandler()
+        public void SurvivorDiedEventSubscriber()
         {
             if (State == GameState.Finished)
-                historicEvents.GameFinished();
+                gameEventsRecorder.GameFinished();
         }
 
-        public void UserLeveledUpNotificationHandler()
+        public void SurvivorLeveledUpEventSubscriber()
         {
             var newLevel = Level;
 
             if (CurrentLevelNotInitializedOrLowerThanNewLevel(newLevel))
             {
-                historicEvents.GameLeveledUp(newLevel);
+                gameEventsRecorder.GameLeveledUp(newLevel);
                 currentXPLevel = Level;
             }
         }
@@ -93,9 +97,13 @@ namespace Zombies.Application
 
         private void SubscribeToSurivorEvents(ISurvivor survivor)
         {
-            var events = survivor as ISurvivorEvents;
+            var events = survivor as ISurvivorEventsPublisher;
+
             if (events != null)
-                events.SetGame(this);
+            {
+                events.RegisterSurvivorDiedEvent(this);
+                events.RegisterSurvivorLeveledUpEvent(this);
+            }
         }
 
         private void VerifySurvivorHasAUniqueName(string name, IEnumerable<string> survivorNames)

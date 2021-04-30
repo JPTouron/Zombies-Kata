@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using Zombies.Application.History;
+using Zombies.Application.HistoryRecording.SuvivorHistory;
 using Zombies.Domain.Gear;
 
 namespace Zombies.Application.Tests
@@ -35,7 +35,7 @@ namespace Zombies.Application.Tests
 
             Assert.NotNull(e);
             Assert.Equal(name, e.Name);
-            Assert.IsAssignableFrom<SurvivorHistory>(e);
+            Assert.IsAssignableFrom<HistoricSurvivor>(e);
             Assert.IsAssignableFrom<ISurvivor>(e);
         }
     }
