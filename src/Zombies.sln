@@ -9,11 +9,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zombies.Domain.Tests", "Zom
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zombies.Domain.BuildingBocks", "Zombies.Domain.BuildingBocks\Zombies.Domain.BuildingBocks.csproj", "{B9E291F5-4674-4902-9061-3082A88C786B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zombies.Application", "Zombies.Application\Zombies.Application.csproj", "{8F64AE1C-1397-45C0-89A7-99F91BD07D87}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zombies.Application", "Zombies.Application\Zombies.Application.csproj", "{8F64AE1C-1397-45C0-89A7-99F91BD07D87}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zombies.Application.Tests", "Zombies.Application.Tests\Zombies.Application.Tests.csproj", "{7A23C2D4-472A-409E-8CC1-9C7BCE142E0D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zombies.Application.Tests", "Zombies.Application.Tests\Zombies.Application.Tests.csproj", "{7A23C2D4-472A-409E-8CC1-9C7BCE142E0D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Zombies.Client", "Zombies.Client\Zombies.Client.csproj", "{DD8EF51D-D8F1-4E32-8690-F6F4E1AACC10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Zombies.Client", "Zombies.Client\Zombies.Client.csproj", "{DD8EF51D-D8F1-4E32-8690-F6F4E1AACC10}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00.Domain", "00.Domain", "{40727B37-B163-4096-94C7-CA75CF7C0886}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "01.Application", "01.Application", "{EC0CF85B-EB01-42B1-BB54-F1528EC0E761}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "02.Client", "02.Client", "{BC1EA87A-91BB-4002-851B-D188F95DB310}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "00.BuildingBlocks", "00.BuildingBlocks", "{5FD994BF-F4DA-4938-A792-AB685DB5E36A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +56,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{65817FD2-B32F-4D45-80AB-6069BE761DAA} = {40727B37-B163-4096-94C7-CA75CF7C0886}
+		{77CF9DC0-7217-496A-8611-9DE72257B055} = {40727B37-B163-4096-94C7-CA75CF7C0886}
+		{B9E291F5-4674-4902-9061-3082A88C786B} = {5FD994BF-F4DA-4938-A792-AB685DB5E36A}
+		{8F64AE1C-1397-45C0-89A7-99F91BD07D87} = {EC0CF85B-EB01-42B1-BB54-F1528EC0E761}
+		{7A23C2D4-472A-409E-8CC1-9C7BCE142E0D} = {EC0CF85B-EB01-42B1-BB54-F1528EC0E761}
+		{DD8EF51D-D8F1-4E32-8690-F6F4E1AACC10} = {BC1EA87A-91BB-4002-851B-D188F95DB310}
+		{5FD994BF-F4DA-4938-A792-AB685DB5E36A} = {40727B37-B163-4096-94C7-CA75CF7C0886}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {39DBB415-13EF-4E9A-B089-C3E6186767A9}
