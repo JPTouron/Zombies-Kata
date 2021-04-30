@@ -9,29 +9,11 @@ using static Zombies.Application.IGame;
 
 namespace Zombies.Application
 {
-
-    public class SurvivorProvider {
-
-        public ISurvivor CreateSurvivor(string name) {
-
-            //JP: WE HAVE A PROBLEM HERE... WE HAVE THE PROVIDER IN APPLICATION AND THE ONE IN DOMAIN
-            //CLIENT CAN SEE BOTH, THATS THE PROBLEM, IT SHOULD ONLY SEE THIS ONE IN APPLICATION SO WE CAN CREATE
-            // A SURVIORHISTORY
-            //ONE SOLUTION: MOVE ALL TO DOMAIN... :-(
-            //ANOTHER: FIND A WAY TO HAVE APPLICATION USING DOMAIN AS WE SEE FIT AND THEN BLOCKING CLIENT FROM USING DOMAIN DIRECTLY
-            return new SurvivorHistory(new Domain.SurvivorProvider().CreateSurvivor(name), HistoryRecorder.Instance());
-        }
-
-    
-    }
-
-
-    internal class Game : IExperience, IGameEventsSubscriber, IGame
+    internal class Game : IGameEventsSubscriber, IGame
     {
-
+        private readonly IGameHistoricEvents historicEvents;
         private XpLevel? currentXPLevel;
         private IList<ISurvivor> survivors;
-        private readonly IGameHistoricEvents historicEvents;
 
         public Game(IGameHistoricEvents historicEvents)
         {
@@ -41,12 +23,11 @@ namespace Zombies.Application
             historicEvents.GameStarted();
         }
 
-
         public GameState State
         {
             get
             {
-                if (survivors.Any(x => x.CurrentState == IHealth.State.Alive))
+                if (survivors.Any(x => x.CurrentState == HealthState.Alive))
                     return GameState.OnGoing;
                 else
                     return GameState.Finished;
@@ -55,27 +36,45 @@ namespace Zombies.Application
 
         public int SurvivorCount => survivors.Count;
 
+        public IList<HistoryRecord> Events => ((IGameHistory)historicEvents).Events;
+
         public int ExperienceValue => MaxOrDefault(survivors, x => x.ExperienceValue);
 
         public XpLevel Level => MaxOrDefaultXPLevel(survivors, x => x.Level);
 
-        public IList<string> Events => ((IGameHistory)historicEvents).Events;
-
-        public void AddSurvivor(ISurvivor survivor)
+        public ISurvivor AddSurvivor(string name)
         {
-            Guard.Against.Null(survivor, nameof(survivor));
+            Guard.Against.NullOrEmpty(name, nameof(name));
 
-            if (survivors.Contains(survivor))
-                throw new InvalidOperationException($"A survivor with the name {survivor.Name} already exists.");
+            VerifySurvivorHasAUniqueName(name, survivors.Select(x => x.Name));
+
+            var survivor = Providers.Survivor(name);
 
             survivors.Add(survivor);
 
             SubscribeToSurivorEvents(survivor);
 
-            historicEvents.SurvivorAdded(new SurvivorAddedToGameEvent(survivor));
+            historicEvents.SurvivorAdded(survivor);
 
+            return survivor;
         }
 
+        public void SurvivorDiedNotificationHandler()
+        {
+            if (State == GameState.Finished)
+                historicEvents.GameFinished();
+        }
+
+        public void UserLeveledUpNotificationHandler()
+        {
+            if (currentXPLevel != null)
+            {
+                var newLevel = Level;
+                if (currentXPLevel < newLevel)
+                    historicEvents.GameLeveledUp(newLevel);
+            }
+            currentXPLevel = Level;
+        }
 
         private int MaxOrDefault<T>(IList<T> source, Expression<Func<T, int?>> selector, int nullValue = 0)
         {
@@ -94,18 +93,12 @@ namespace Zombies.Application
                 events.SetGame(this);
         }
 
-        public void SurvivorDiedNotificationHandler() { }
-        public void UserLeveledUpNotificationHandler()
+        private void VerifySurvivorHasAUniqueName(string name, IEnumerable<string> survivorNames)
         {
-            if (currentXPLevel != null)
-            {
-                var newLevel = Level;
-                if (currentXPLevel < newLevel)
-                    historicEvents.GameLeveledUp(new GameLeveledUpEvent(newLevel));
+            var rule = new SurvivorNameMustBeUniqueRule(name, survivorNames.ToList());
 
-            }
-            currentXPLevel = Level;
+            if (rule.IsBroken())
+                throw new InvalidOperationException(rule.Message);
         }
-
     }
 }

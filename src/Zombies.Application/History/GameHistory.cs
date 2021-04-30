@@ -1,156 +1,136 @@
 ﻿using System;
 using System.Collections.Generic;
+using Zombies.Application.History.EventMessages;
 using Zombies.Domain;
 using Zombies.Domain.Gear;
 
 namespace Zombies.Application.History
 {
+    public interface IGameHistory
+    {
+        IList<HistoryRecord> Events { get; }
+    }
 
     internal interface IGameEventsSubscriber
     {
         void SurvivorDiedNotificationHandler();
+
         void UserLeveledUpNotificationHandler();
-    }
-    internal abstract class SurvivorEventBase {
-
-        protected readonly ISurvivor survivor;
-
-        protected SurvivorEventBase(ISurvivor survivor) => this.survivor = survivor;
-        public string Name => survivor.Name;
-    }
-    internal sealed class SurvivorAddedToGameEvent : SurvivorEventBase
-    {
-        public SurvivorAddedToGameEvent(ISurvivor survivor) : base(survivor)
-        {
-        }
-    }
-
-    internal sealed class SurvivorEquipmentEvent:SurvivorEventBase {
-
-
-        public SurvivorEquipmentEvent(ISurvivor survivor, IEquipment equipmentAdded) : base(survivor)
-        {
-            EquipmentAdded = equipmentAdded;
-        }
-
-        public IEquipment EquipmentAdded { get; }
-    }
-
-    internal sealed class GameLeveledUpEvent {
-        public GameLeveledUpEvent(XpLevel level)
-        {
-            Level = level;
-        }
-
-        public XpLevel Level { get; }
-    }
-    internal sealed class SurvivorEvent:SurvivorEventBase
-    {
-
-        public SurvivorEvent(ISurvivor survivor) : base(survivor) { }
-
-        public XpLevel Level => survivor.Level;
-
-        public int Wounds => survivor.Wounds;
-
-    }
-
-    
-    internal interface ISurvivorHistoricEvents
-    {
-
-        void AddedEquipment(SurvivorEquipmentEvent eventData);
-        void LeveledUp(SurvivorEvent eventData);
-        void Wounded(SurvivorEvent eventData);
-        void Died(SurvivorEvent eventData);
-    }
-
-    internal class HistoryRecorder: ISurvivorHistoricEvents,IGameHistoricEvents, IGameHistory
-    {
-        private IList<string> history;
-        static HistoryRecorder instance;
-        public static HistoryRecorder Instance() {
-
-            if (instance == null)
-                instance = new HistoryRecorder();
-            return instance;
-        }
-        private HistoryRecorder()
-        {
-            history = new List<string>();
-        }
-
-        public IList<string> Events => history;
-
-
-
-        public void Died(SurvivorEvent eventData)
-        {
-            Record($"{eventData.Name} has died!");
-
-        }
-
-        public void LeveledUp(SurvivorEvent eventData)
-        {
-            Record($"{eventData.Name} has leveled up to {eventData.Level}!");
-
-        }
-
-        private void Record(string msg)
-        {
-
-            history.Add(DateTime.Now.ToShortDateString() + " - " + msg);
-        }
-
-        public void Wounded(SurvivorEvent eventData)
-        {
-            Record($"{eventData.Name} has been wounded {eventData.Wounds} times!");
-
-        }
-
-        public void AddedEquipment(SurvivorEquipmentEvent eventData)
-        {
-            Record($"{eventData.Name} has added {eventData.EquipmentAdded.Name}");
-
-        }
-
-        public void GameStarted()
-        {
-            Record($"A new game has started!");
-
-        }
-
-        public void GameFinished()
-        {
-            Record($"Game has ended, no more survivors are left!");
-
-        }
-
-        public void SurvivorAdded(SurvivorAddedToGameEvent eventData)
-        {
-            Record($"Survivor {eventData.Name}, has been added to the game");
-
-        }
-
-        public void GameLeveledUp(GameLeveledUpEvent eventData)
-        {
-            Record($"Game reached {eventData.Level} level!");
-
-        }
-    }
-
-    public interface IGameHistory
-    {
-        IList<string> Events { get; }
-
     }
 
     internal interface IGameHistoricEvents
     {
-        void GameStarted();
         void GameFinished();
-        void SurvivorAdded(SurvivorAddedToGameEvent eventData);
-        void GameLeveledUp(GameLeveledUpEvent eventData);
 
+        void GameLeveledUp(XpLevel level);
+
+        void GameStarted();
+
+        void SurvivorAdded(ISurvivor survivor);
+    }
+
+    internal interface ISurvivorHistoricEvents
+    {
+        void AddedEquipment(ISurvivor survivor, IEquipment equipmentAdded);
+
+        void Died(ISurvivor survivor);
+
+        void LeveledUp(ISurvivor survivor);
+
+        void Wounded(ISurvivor survivor);
+    }
+
+    public class HistoryRecord
+    {
+        public HistoryRecord(string message, DateTime timeStamp)
+        {
+            Message = message;
+            TimeStamp = timeStamp;
+        }
+
+        public string Message { get; }
+
+        public DateTime TimeStamp { get; }
+
+        public static implicit operator String(HistoryRecord record)
+        {
+            return record.ToString();
+        }
+
+        public override string ToString()
+        {
+            return TimeStamp.ToShortDateString() + " - " + Message;
+        }
+    }
+
+    internal class HistoryRecorder : ISurvivorHistoricEvents, IGameHistoricEvents, IGameHistory
+    {
+        private static HistoryRecorder instance;
+        private IList<HistoryRecord> history;
+
+        private HistoryRecorder()
+        {
+            history = new List<HistoryRecord>();
+        }
+
+        public IList<HistoryRecord> Events => history;
+
+        public static HistoryRecorder Instance()
+        {
+            if (instance == null)
+                instance = new HistoryRecorder();
+            return instance;
+        }
+
+        public void AddedEquipment(ISurvivor survivor, IEquipment equipmentAdded)
+        {
+            var eventData = new SurvivorEquipmentEventMessage(survivor, equipmentAdded);
+            Record(eventData.Message);
+        }
+
+        public void Died(ISurvivor survivor)
+        {
+            var eventData = new SurvivorDiedEventMessage(survivor);
+            Record(eventData.Message);
+        }
+
+        public void GameFinished()
+        {
+            Record(new GameFinishedEventMessage().Message);
+        }
+
+        public void GameLeveledUp(XpLevel level)
+        {
+            var eventData = new GameLeveledUpEventMessage(level);
+            Record(eventData.Message);
+        }
+
+        public void GameStarted()
+        {
+            Record(new GameStartedEventMessage().Message);
+        }
+
+        public void LeveledUp(ISurvivor survivor)
+        {
+            var eventData = new SurvivorLeveledUpEventMessage(survivor);
+            Record(eventData.Message);
+        }
+
+        public void SurvivorAdded(ISurvivor survivor)
+        {
+            var eventData = new SurvivorAddedToGameEventMessage(survivor);
+            Record(eventData.Message);
+        }
+
+        public void Wounded(ISurvivor survivor)
+        {
+            var eventData = new SurvivorWoundedEventMessage(survivor);
+            Record(eventData.Message);
+        }
+
+        private void Record(string msg)
+        {
+            history.Add(new HistoryRecord(msg, DateTime.Now));
+        }
     }
 }

@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using Zombies.Domain;
 using Zombies.Domain.Gear;
+using Zombies.Domain.Survivors;
 
 namespace Zombies.Application.History
 {
-
-
     internal interface ISurvivorEvents
     {
         void SetGame(Game game); //should be an internal iface for the game
@@ -19,11 +18,11 @@ namespace Zombies.Application.History
     internal class SurvivorHistory : ISurvivor, ISurvivorEvents
     {
         private readonly ISurvivorHistoricEvents historicEvents;
-        private readonly ISurvivor survivor;
+        private readonly Survivor survivor;
         private SurvivorDiedEvent survivorDiedNotifier;
         private SurvivorLeveledUpEvent survivorLeveledUpNotifier;
 
-        public SurvivorHistory(ISurvivor survivor, ISurvivorHistoricEvents historicEvents)
+        public SurvivorHistory(Survivor survivor, ISurvivorHistoricEvents historicEvents)
         {
             this.survivor = survivor;
             this.historicEvents = historicEvents;
@@ -35,7 +34,7 @@ namespace Zombies.Application.History
 
         public IReadOnlyCollection<IEquipment> BackPack => survivor.BackPack;
 
-        public IHealth.State CurrentState => survivor.CurrentState;
+        public HealthState CurrentState => survivor.CurrentState;
 
         public int ExperienceValue => survivor.ExperienceValue;
 
@@ -50,7 +49,7 @@ namespace Zombies.Application.History
         public void AddEquipment(IEquipment equipment)
         {
             survivor.AddEquipment(equipment);
-            historicEvents.AddedEquipment(new SurvivorEquipmentEvent(this, equipment));
+            historicEvents.AddedEquipment(this, equipment);
         }
 
         public void Kill(Zombie zombie)
@@ -60,7 +59,7 @@ namespace Zombies.Application.History
 
             if (currLevel != Level)
             {
-                historicEvents.LeveledUp(new SurvivorEvent(this));
+                historicEvents.LeveledUp(this);
                 FireEvent(survivorLeveledUpNotifier);
             }
         }
@@ -74,11 +73,11 @@ namespace Zombies.Application.History
         public void Wound(int inflictedWounds)
         {
             survivor.Wound(inflictedWounds);
-            historicEvents.Wounded(new SurvivorEvent(this));
+            historicEvents.Wounded(this);
 
-            if (CurrentState == IHealth.State.Dead)
+            if (CurrentState == HealthState.Dead)
             {
-                historicEvents.Died(new SurvivorEvent(this));
+                historicEvents.Died(this);
                 FireEvent(survivorDiedNotifier);
             }
         }
