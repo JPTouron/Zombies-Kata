@@ -35,6 +35,17 @@ namespace Zombies.Domain.Tests
             Assert.Equal(expectedMaxPoints, sut.MaxLevelPoints);
         }
 
+        [Fact]
+        public void WhenExperiencePointsIsOnMaxThenPossibleValueItCannotIncrease()
+        {
+            var sut = Utils.CreateMaxedOutExperience();
+            short expectedExpPoints = 149;
+
+            sut.Increase();
+
+            Assert.Equal(expectedExpPoints, sut.ExperiencePoints);
+        }
+
         public class BeCreated
         {
             [Fact]
@@ -45,6 +56,29 @@ namespace Zombies.Domain.Tests
                 Assert.Equal(0, sut.ExperiencePoints);
                 Assert.Equal(6, sut.MaxLevelPoints);
                 Assert.Equal(XpLevel.Blue, sut.Level);
+            }
+        }
+
+        public class ComplyWithBusinessRules
+        {
+            [Fact]
+            public void WhenExperiencePointsIsNotOnMaxThenPossibleValueItCanIncrease()
+            {
+                short maxExperiencePoints = 149;
+                var currentExpPoints = (short)(maxExperiencePoints - 1);
+                var sut = new ExperienceCannotIncreaseOverThresholdRule(currentExpPoints, 1,maxExperiencePoints);
+
+                Assert.False(sut.IsBroken());
+            }
+
+            [Fact]
+            public void WhenExperiencePointsIsOnMaxThenPossibleValueItCannotIncrease()
+            {
+                short maxExperiencePoints = 149;
+                var currentExpPoints = maxExperiencePoints;
+                var sut = new ExperienceCannotIncreaseOverThresholdRule(currentExpPoints, 1, maxExperiencePoints);
+
+                Assert.True(sut.IsBroken());
             }
         }
     }

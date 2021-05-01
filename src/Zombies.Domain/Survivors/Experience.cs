@@ -1,5 +1,27 @@
-﻿namespace Zombies.Domain.Survivors
+﻿using Zombies.Domain.BuildingBocks;
+
+namespace Zombies.Domain.Survivors
 {
+    internal class ExperienceCannotIncreaseOverThresholdRule : IBusinessRuleCheck
+    {
+        private readonly short currentExperiencePoints;
+        private readonly short experiencePointsIncrease;
+        private readonly short maxExperiencePoints;
+
+        public ExperienceCannotIncreaseOverThresholdRule(short currentExperiencePoints, short experiencePointsIncrease, short maxExperiencePoints)
+        {
+            this.currentExperiencePoints = currentExperiencePoints;
+            this.experiencePointsIncrease = experiencePointsIncrease;
+            this.maxExperiencePoints = maxExperiencePoints;
+        }
+
+        public bool IsBroken()
+        {
+            var deltaToThreshold = maxExperiencePoints - currentExperiencePoints;
+
+            return experiencePointsIncrease > deltaToThreshold;
+        }
+    }
     public sealed class Experience
     {
         public Experience()
@@ -7,7 +29,7 @@
             ExperiencePoints = 0;
         }
 
-        public int ExperiencePoints { get; private set; }
+        public short ExperiencePoints { get; private set; }
 
         public XpLevel Level
         {
@@ -39,10 +61,17 @@
                 return (int)XpLevel.Red;
             }
         }
+        private const int MaxExperiencePoints = 149;
 
         public void Increase()
         {
-            ExperiencePoints++;
+            short increase = 1;
+
+            var rule = new ExperienceCannotIncreaseOverThresholdRule(ExperiencePoints, increase, MaxExperiencePoints);
+            var canIncreaseExperience = !rule.IsBroken();
+
+            if (canIncreaseExperience)
+                ExperiencePoints++;
         }
     }
 }

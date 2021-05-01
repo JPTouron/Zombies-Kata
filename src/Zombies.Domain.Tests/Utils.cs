@@ -6,6 +6,15 @@ namespace Zombies.Domain.Tests
 {
     internal static class Utils
     {
+        internal static Experience CreateMaxedOutExperience() {
+
+            var exp = new Experience();
+
+            for (int i = 0; i < short.MaxValue; i++)
+                exp.Increase();
+
+            return exp;
+        }
         internal static Survivor CreateDeadSurvivor(string name = null)
         {
             var survivor = CreateSurvivor(name);
