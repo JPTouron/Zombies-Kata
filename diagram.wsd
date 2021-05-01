@@ -212,9 +212,60 @@ package Domain{
     end note
 
 
+    abstract class Skill{
+        #XpLevel UnlocksAt {get;}
+    }
 
+    class SkillComposite{
+        +IList<Skill> Skills {get;}
+    }
 
+    Skill <|-- SkillComposite
+    SkillComposite *-- Skill
 
+    class YellowSkillLeaf{
+        //UnlocksAt => Yellow
+        +Skill skill{get;} => +1 Action
+
+    }
+
+    Skill <|- YellowSkillLeaf
+    class OrangeSkillLeaf{
+        //UnlocksAt => Orange
+        +Skill skill{get;}
+        +Skill skill{get;}
+
+    }
+    Skill <|-- OrangeSkillLeaf
+
+    class RedSkillLeaf{
+        //UnlocksAt => red
+        +Skill skill{get;}
+        +Skill skill{get;}
+        +Skill skill{get;}
+    }
+    Skill <|-- RedSkillLeaf
+
+    class SkillTree{
+
+        -SkillComposite potentialSkills
+
+    }
+    note left 
+    IT MAY BE COOL TO IMPLEMENT A NORMAL Skill
+    AS THESE SKILLS SHOULD CHANGE THE SURVIVOR BEHAVIOR
+    THEN THESE ARE STRATEGIES, A NORMAL SKILL CAN APPLY TO ANYTHING
+    SO WE SHOULD HAVE A NORMAL HEALTH, NORMAL ATTACK OR NORMAL WHATEV
+    THEN THESE NORMAL CRAP SHOULD COMPRISE THE ROOT OF OUR SkillTree
+    BEING STRATEGIES WE'D NEED A PROVIDER FOR THESE, AND THAT PROVIDER 
+    SHOULD BE THE SKILL LEAFS (RedSkillLeaf, YellowSkillLeaf, ETC)
+    THEN WE'D HAVE TO FIND A WAY THROUGH THE SkillTree TO INVOKE 
+    THE PROPER SKILL STRATEGY 
+    (maybe a visitor is in order... should check, maybe just a strategy is ok)
+    end note
+
+    SkillComposite <-- SkillTree
+    SkillTree *-- Survivor
 
 }
 
@@ -248,4 +299,6 @@ package Application{
     IExperience <|-- Game
 
 }
+
+
 @enduml
