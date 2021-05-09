@@ -3,18 +3,30 @@ using System;
 using System.Collections.Generic;
 using Zombies.Domain.BuildingBocks;
 using Zombies.Domain.Gear;
+using Zombies.Domain.Survivors.SkillAggregate.Tree;
 
 namespace Zombies.Domain.Survivors
 {
+    //JP: DO THIS CHANGES:
+    /*
+    1- HEALTH, EXPERIENCE AND MAYBE INV HANDLER TO VALUE OBJECTS AND IMMUTABLE
+    2- INV HANDLER SHOULD HAVE THE CAPACITY HANDLING STRIPPED FROM IT, IS WAY TOO COMPLEX CODE
+    3- ENCAPSULATE ALL THE SURVIVOR INTEGRATION CLASSES WITHIN SURVIVOR AND HIDE THEM, NO NEED TO HAVE THEM AVAILABLE FOR USAGE ON THE OUTSIDE (AT LEAST TRY TO DO THIS)
+    4- BASE ON THESE 2 COURSES: V KORIKOV DDD AND PLOEH OUTSIDE-IN TDD
+    5- INTEGRATE THE GAME AND HISTORY STUFF INTO DOMAIN LAYER
+     
+     */
+
     public sealed class Survivor : IAggregateRoot
     {
         private readonly Experience experience;
+        private readonly SkillTree skillTree;
         private readonly Health health;
         private readonly InventoryHandler inventory;
         private IEquipment leftHandEquip;
         private IEquipment rightHandEquip;
 
-        public Survivor(string name, InventoryHandler inventory, Health health, Experience experience)
+        public Survivor(string name, InventoryHandler inventory, Health health, Experience experience, SkillTree skillTree)
         {
             Guard.Against.NullOrWhiteSpace(name, nameof(name));
             Guard.Against.Null(inventory, nameof(inventory));
@@ -22,11 +34,10 @@ namespace Zombies.Domain.Survivors
             Guard.Against.Null(experience, nameof(experience));
 
             Name = name;
-            RemainingActions = 3;
             this.inventory = inventory;
             this.health = health;
             this.experience = experience;
-
+            this.skillTree = skillTree;
             leftHandEquip = new NoEquipment();
             rightHandEquip = new NoEquipment();
         }
@@ -50,7 +61,7 @@ namespace Zombies.Domain.Survivors
 
         public string Name { get; }
 
-        public int RemainingActions { get; }
+        public int RemainingActions => skillTree.Action.Remaining;
 
         public IEquipment RightHandEquip
         {
@@ -66,7 +77,7 @@ namespace Zombies.Domain.Survivors
 
         public HealthState CurrentState => health.CurrentState;
 
-        public XpLevel Level => experience.Level;
+        public XpLevel Level => experience.Level;// => skilltree.level
 
         public int Wounds => health.Wounds;
 
@@ -79,7 +90,8 @@ namespace Zombies.Domain.Survivors
         public void Kill(Zombie zombie)
         {
             if (SurvivorIsAlive())
-                experience.Increase();
+                skillTree.IncreaseExperience();
+                //experience.Increase();
         }
 
         public void Wound(int inflictedWounds)
