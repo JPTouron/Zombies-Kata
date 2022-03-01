@@ -53,7 +53,7 @@ As Survivors overcome zombies, they gain experience.
 	- [x] When a Survivor exceeds 42 Experience, they advance to level Red.
 - [x] A Game has a Level (Level here is identical to Level for a Survivor).
 - [x] A Game begins at Level Blue.
-- [] A Game Level is always equal to the level of the highest living Survivor's Level.
+- [x] A Game Level is always equal to the level of the highest living Survivor's Level.
 
 ## Step Five : Output
 
