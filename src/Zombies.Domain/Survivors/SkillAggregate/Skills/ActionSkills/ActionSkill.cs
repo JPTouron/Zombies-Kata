@@ -3,7 +3,7 @@
     public abstract class ActionSkill : SkillBase
     {
 
-        public ActionSkill(short remaining,string skillName,XpLevel unlockableAt) : base("Action",skillName,unlockableAt)
+        protected ActionSkill(short remaining,string skillName,XpLevel unlockableAt) : base("Action",skillName,unlockableAt)
         {
             Remaining = remaining;
 

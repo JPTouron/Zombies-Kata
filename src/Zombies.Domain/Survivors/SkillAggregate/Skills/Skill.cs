@@ -7,7 +7,7 @@ namespace Zombies.Domain.Survivors.SkillAggregate
 
     public abstract class SkillBase : ISkillName
     {
-        public SkillBase(string idName,string skillName,XpLevel unlockableAt)
+        protected SkillBase(string idName,string skillName,XpLevel unlockableAt)
         {
             IdName = idName;
             SkillName = skillName;

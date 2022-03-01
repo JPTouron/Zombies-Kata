@@ -42,7 +42,7 @@ namespace Zombies.Domain.Survivors.SkillAggregate.Tree
     {
 
 
-        void ApplySkill(ISkillName skill);
+        void UnlockSkill(ISkillName skill);
     }
 
     //JP: CONTINUE WITH: INVENTORY SKILL AND EXTRACTING CAPACITY FROM IT AND PLACING INVENTORY AS A DEP ON SKILLTREE
@@ -60,10 +60,12 @@ namespace Zombies.Domain.Survivors.SkillAggregate.Tree
         public SkillTree(Experience experience)
         {
             this.experience = experience;
-            skills = new List<SkillBase>();
-            skills.Add(new NormalActionSkill());
+            skills = new List<SkillBase>
+            {
+                new NormalActionSkill()
+            };
         }
-        public void ApplySkill(ISkillName skill)
+        public void UnlockSkill(ISkillName skill)
         {
             throw new NotImplementedException();
         }
