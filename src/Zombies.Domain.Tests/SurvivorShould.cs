@@ -1,6 +1,7 @@
 ﻿using Ardalis.GuardClauses;
 using AutoFixture;
 using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace Zombies.Domain.Tests
@@ -53,6 +54,75 @@ namespace Zombies.Domain.Tests
             Assert.Equal(3, s.AvailableActionsInTurn);
         }
 
+        [Fact]
+        public void BeCreatedWithNoEquipment()
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            Assert.Equal(0, s.InHand);
+            Assert.Equal(0, s.InReserve);
+        }
+
+        [Theory]
+        [InlineData(5)]
+        [InlineData(6)]
+        [InlineData(10)]
+        public void HaveUpToFiveEquipmentItems(int equipmentToAdd)
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            for (int i = 0; i < equipmentToAdd; i++)
+            {
+                var e = new Fixture().Create<string>();
+                s.AddEquipment(e);
+            }
+
+            Assert.Equal(5, s.InHand + s.InReserve);
+        }
+
+        [Theory]
+        [InlineData("", typeof(ArgumentException))]
+        [InlineData((string?)null, typeof(ArgumentNullException))]
+        public void OnlyAddEquipmentWhenNameIsNotNorrOrEmpty(string equipmentName, Type exceptionType)
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            Assert.Throws(exceptionType, () => s.AddEquipment(equipmentName));
+        }
+
+
+        [Fact]
+        public void AddEquipmentToHandsFirstAndThenToReserve()
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            var equipmentToAdd = new Fixture().CreateMany<string>(5);
+
+            var i = 0;
+            foreach (var equipment in equipmentToAdd)
+            {
+                i++;
+                s.AddEquipment(equipment);
+
+                if (i <= 2)
+                {
+                    Assert.Equal(i, s.InHand);
+                    Assert.Equal(0, s.InReserve);
+                }
+                if (i > 2)
+                {
+                    Assert.Equal(i-2, s.InReserve);
+                    Assert.Equal(2, s.InHand);
+                }
+
+            }
+
+            Assert.Equal(2, s.InHand);
+            Assert.Equal(3, s.InReserve);
+
+
+        }
+
         [Theory]
         [InlineData(1, true)]
         [InlineData(2, false)]
@@ -75,6 +145,10 @@ namespace Zombies.Domain.Tests
 
     internal class Survivor
     {
+        private List<string> equipmentInHand;
+
+        private List<string> equipmentInReserve;
+
         public Survivor(string name)
         {
             Guard.Against.NullOrEmpty(name, nameof(name));
@@ -82,6 +156,8 @@ namespace Zombies.Domain.Tests
             Name = name;
             Wounds = 0;
             AvailableActionsInTurn = 3;
+            equipmentInHand = new List<string>();
+            equipmentInReserve = new List<string>();
         }
 
         public string Name { get; }
@@ -90,7 +166,27 @@ namespace Zombies.Domain.Tests
 
         public int AvailableActionsInTurn { get; }
 
+        public int InHand => equipmentInHand.Count;
+
+        public int InReserve => equipmentInReserve.Count;
+
         public bool IsAlive => Wounds < 2;
+
+        internal void AddEquipment(string equipmentName)
+        {
+            Guard.Against.NullOrEmpty(equipmentName, nameof(equipmentName));
+            
+            if (InHand == 2 && InReserve < 3)
+            {
+                equipmentInReserve.Add(equipmentName);
+            }
+
+            if (InHand < 2)
+            {
+                equipmentInHand.Add(equipmentName);
+            }
+
+        }
 
         internal void Wound()
         {
