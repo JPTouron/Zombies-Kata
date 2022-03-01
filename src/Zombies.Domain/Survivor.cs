@@ -3,7 +3,22 @@ using System.Collections.Generic;
 
 namespace Zombies.Domain
 {
-    public class Survivor
+    public interface IZombieUnderAttack
+    {
+        bool IsAlive { get; }
+
+        void Wound(IKillingSurvivor killingSurvivor);
+    }
+
+    public enum Level
+    {
+        Blue,
+        Yellow,
+        Orange,
+        Red
+    }
+
+    public class Survivor : IKillingSurvivor
     {
         private List<string> equipmentInHand;
 
@@ -15,6 +30,7 @@ namespace Zombies.Domain
 
             Name = name;
             Wounds = 0;
+            Experience = 0;
             AvailableActionsInTurn = 3;
             equipmentInHand = new List<string>();
             equipmentInReserve = new List<string>();
@@ -31,6 +47,25 @@ namespace Zombies.Domain
         public int InReserve => equipmentInReserve.Count;
 
         public bool IsAlive => Wounds < 2;
+
+        public int Experience { get; private set; }
+
+        public Level Level => Experience switch
+        {
+            >= 0 and <= 5 => Level.Blue,
+            >= 6 and <= 17 => Level.Yellow,
+            >= 18 and <= 41 => Level.Orange,
+            _ => Level.Red    // default value
+        };
+
+
+        public void Attack(IZombieUnderAttack z)
+        {
+            z.Wound(this);
+
+            if (z.IsAlive == false)
+                Experience++;
+        }
 
         public void AddEquipment(string equipmentName)
         {
@@ -54,13 +89,10 @@ namespace Zombies.Domain
             if (IsAlive)
             {
                 if (InReserve > 0)
-                {
                     equipmentInReserve.RemoveAt(InReserve - 1);
-                }
+
                 if (InReserve == 0 && InHand > 0)
-                {
                     equipmentInHand.RemoveAt(InHand - 1);
-                }
             }
         }
     }

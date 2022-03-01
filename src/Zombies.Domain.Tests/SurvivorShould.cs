@@ -7,6 +7,48 @@ namespace Zombies.Domain.Tests
     public class SurvivorShould
     {
         [Theory]
+        [InlineData(false, 0)]
+        [InlineData(true, 1)]
+        public void GainOneExperiencePointWhenKillingAZombie(bool killZombie, int gainedExperience)
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            var initialExp = s.Experience;
+
+            var z = new Zombie();
+
+            if (killZombie)
+                while (z.IsAlive)
+                    s.Attack(z);
+
+            Assert.Equal(gainedExperience, s.Experience);
+        }
+
+        [Theory]
+        [InlineData(0, Level.Blue)]
+        [InlineData(5, Level.Blue)]
+        [InlineData(6, Level.Yellow)]
+        [InlineData(17, Level.Yellow)]
+        [InlineData(18, Level.Orange)]
+        [InlineData(41, Level.Orange)]
+        [InlineData(42, Level.Red)]
+        public void LevelUp(int zombiesToKill, Level expectedLevel)
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            for (int i = 0; i < zombiesToKill; i++)
+            {
+                var z = new Zombie();
+
+                while (z.IsAlive)
+                    s.Attack(z);
+            }
+
+            Assert.Equal(zombiesToKill, s.Experience);
+            Assert.Equal(expectedLevel, s.Level);
+        }
+
+        [Theory]
         [InlineData("John")]
         [InlineData("Martin")]
         public void HaveAName(string name)
@@ -147,6 +189,22 @@ namespace Zombies.Domain.Tests
             }
 
             Assert.Equal(shouldBeAlive, s.IsAlive);
+        }
+
+        [Fact]
+        public void BeCreatedWithZeroExperience()
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            Assert.Equal(0, s.Experience);
+        }
+
+        [Fact]
+        public void BeCreatedWithLevelBlue()
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
+
+            Assert.Equal(Level.Blue, s.Level);
         }
     }
 }
