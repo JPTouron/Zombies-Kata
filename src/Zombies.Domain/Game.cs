@@ -17,6 +17,11 @@ namespace Zombies.Domain
 
         public bool HasEnded => survivors.All(x => x.IsAlive == false);
 
+        public Level Level =>survivors.Where(x=>x.IsAlive)
+                                      .Select(x=>x.Level)
+                                      .DefaultIfEmpty(Level.Blue)
+                                      .Max();
+
         public void AddSurvivor(Survivor s)
         {
             if (survivors.Any(x => x.Name == s.Name))

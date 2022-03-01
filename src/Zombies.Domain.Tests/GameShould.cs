@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Zombies.Domain.Tests
@@ -7,11 +8,20 @@ namespace Zombies.Domain.Tests
     public class GameShould
     {
         [Fact]
-        public void BeginWithZeroSurvivors()
+        public void BeginsWithZeroSurvivors()
         {
             var g = new Game();
 
             Assert.Equal(0, g.Survivors);
+        }
+
+
+        [Fact]
+        public void BeginsWithLevelBlue()
+        {
+            var g = new Game();
+
+            Assert.Equal(Level.Blue, g.Level);
         }
 
         [Theory]
@@ -51,6 +61,32 @@ namespace Zombies.Domain.Tests
                     s.Wound();
 
             Assert.True(g.HasEnded);
+        }
+
+        [Theory]
+        [InlineData(Level.Blue)]
+        [InlineData(Level.Yellow)]
+        [InlineData(Level.Orange)]
+        [InlineData(Level.Red)]
+        public void HaveALevelMatchingTheHighestSurvivorLevel(Level maxLevelToGainByASurvivor)
+        {
+            IEnumerable<Survivor> survivors;
+
+            var survivorsToAdd = 3;
+            var g = GameProvider.CreateGameWithMultipleRandomPlayers(out survivors, survivorsToAdd);
+
+
+            var s = survivors.ToList().ElementAt(2);
+
+            while (s.Level < maxLevelToGainByASurvivor)
+            {
+                var z = new Zombie();
+                while (z.IsAlive)
+                    s.Attack(z);
+            }
+
+            Assert.Equal(s.Level, g.Level);
+            Assert.Equal(maxLevelToGainByASurvivor, g.Level);
         }
     }
 }
