@@ -14,6 +14,5 @@ namespace Zombies.Domain.Tests
             var s = new Survivor(name);
             return s;
         }
-
     }
 }

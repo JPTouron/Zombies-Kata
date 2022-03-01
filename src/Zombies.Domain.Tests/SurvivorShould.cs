@@ -1,17 +1,11 @@
-﻿using Ardalis.GuardClauses;
-using AutoFixture;
+﻿using AutoFixture;
 using System;
-using System.Collections.Generic;
 using Xunit;
 
 namespace Zombies.Domain.Tests
 {
     public class SurvivorShould
     {
-        public SurvivorShould()
-        {
-        }
-
         [Theory]
         [InlineData("John")]
         [InlineData("Martin")]
@@ -90,7 +84,6 @@ namespace Zombies.Domain.Tests
             Assert.Throws(exceptionType, () => s.AddEquipment(equipmentName));
         }
 
-
         [Fact]
         public void AddEquipmentToHandsFirstAndThenToReserve()
         {
@@ -111,16 +104,30 @@ namespace Zombies.Domain.Tests
                 }
                 if (i > 2)
                 {
-                    Assert.Equal(i-2, s.InReserve);
+                    Assert.Equal(i - 2, s.InReserve);
                     Assert.Equal(2, s.InHand);
                 }
-
             }
 
             Assert.Equal(2, s.InHand);
             Assert.Equal(3, s.InReserve);
+        }
 
+        [Theory]
+        [InlineData(1, 4)]
+        public void DropsTheLatestAddedEquipmentWhenWounded(int woundsToReceive, int remainingEquipment)
+        {
+            var s = SurvivorProvider.CreateRandomSurvivor();
 
+            var equipmentToAdd = new Fixture().CreateMany<string>(5);
+
+            foreach (var equipment in equipmentToAdd)
+                s.AddEquipment(equipment);
+
+            for (int i = 0; i < woundsToReceive; i++)
+                s.Wound();
+
+            Assert.Equal(remainingEquipment, s.InHand + s.InReserve);
         }
 
         [Theory]
@@ -140,57 +147,6 @@ namespace Zombies.Domain.Tests
             }
 
             Assert.Equal(shouldBeAlive, s.IsAlive);
-        }
-    }
-
-    internal class Survivor
-    {
-        private List<string> equipmentInHand;
-
-        private List<string> equipmentInReserve;
-
-        public Survivor(string name)
-        {
-            Guard.Against.NullOrEmpty(name, nameof(name));
-
-            Name = name;
-            Wounds = 0;
-            AvailableActionsInTurn = 3;
-            equipmentInHand = new List<string>();
-            equipmentInReserve = new List<string>();
-        }
-
-        public string Name { get; }
-
-        public int Wounds { get; private set; }
-
-        public int AvailableActionsInTurn { get; }
-
-        public int InHand => equipmentInHand.Count;
-
-        public int InReserve => equipmentInReserve.Count;
-
-        public bool IsAlive => Wounds < 2;
-
-        internal void AddEquipment(string equipmentName)
-        {
-            Guard.Against.NullOrEmpty(equipmentName, nameof(equipmentName));
-            
-            if (InHand == 2 && InReserve < 3)
-            {
-                equipmentInReserve.Add(equipmentName);
-            }
-
-            if (InHand < 2)
-            {
-                equipmentInHand.Add(equipmentName);
-            }
-
-        }
-
-        internal void Wound()
-        {
-            Wounds++;
         }
     }
 }
