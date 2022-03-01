@@ -34,10 +34,10 @@ Survivors can use equipment to help them in their mission.
 
 A Game includes one or more Survivors, as well as other Game elements that are outside the scope of this kata.
 
-- [] A **Game** begins with 0 Survivors.
-- [] A Game can have Survivors added to it at any time.
-	- [] Survivor Names within a Game must be unique.
-- [] A Game ends immediately if all of its Survivors have died.
+- [x] A **Game** begins with 0 Survivors.
+- [x] A Game can have Survivors added to it at any time.
+	- [x] Survivor Names within a Game must be unique.
+- [x] A Game ends immediately if all of its Survivors have died.
 
 ## Step Four : Experience and Levels
 

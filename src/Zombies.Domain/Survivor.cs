@@ -1,7 +1,7 @@
 ﻿using Ardalis.GuardClauses;
 using System.Collections.Generic;
 
-namespace Zombies.Domain.Tests
+namespace Zombies.Domain
 {
     public class Survivor
     {
