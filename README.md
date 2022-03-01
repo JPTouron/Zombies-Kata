@@ -14,10 +14,10 @@ Do not read all the steps at once, try completing a single step before learning 
 
 The zombie apocalypse has occurred. You must model a Survivor in this harsh world. Sometimes, they get hurt, and even die.
 
-- Each **Survivor** has a **Name**.
-- Each Survivor begins with 0 **Wounds**.
-- A Survivor who receives 2 Wounds dies immediately; additional Wounds are ignored.
-- Each Survivor starts with the ability to perform 3 Actions per turn.
+- [x] Each **Survivor** has a **Name**.
+- [x] Each Survivor begins with 0 **Wounds**.
+- [x] A Survivor who receives 2 Wounds dies immediately; additional Wounds are ignored.
+- [x] Each Survivor starts with the ability to perform 3 Actions per turn.
 
 ## Step Two : Equipment
 

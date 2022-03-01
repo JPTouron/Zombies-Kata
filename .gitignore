@@ -267,3 +267,6 @@ paket-files/
 # coverlet
 **/coverage.json
 coverage.cobertura.xml
+
+#Stryker mutation tests
+StrykerOutput/
