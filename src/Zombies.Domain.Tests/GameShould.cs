@@ -1,5 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AutoFixture;
+using AutoFixture.AutoMoq;
+using Moq;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -7,21 +9,38 @@ namespace Zombies.Domain.Tests
 {
     public class GameShould
     {
+        private IFixture f;
+        private Mock<IClock> clock;
+        private Game g;
+
+        public GameShould()
+        {
+            f = new Fixture().Customize(new AutoMoqCustomization());
+            clock = f.Freeze<Mock<IClock>>();
+            g = f.Create<Game>();
+        }
+
         [Fact]
         public void BeginsWithZeroSurvivors()
         {
-            var g = new Game();
-
             Assert.Equal(0, g.Survivors);
         }
-
 
         [Fact]
         public void BeginsWithLevelBlue()
         {
-            var g = new Game();
-
             Assert.Equal(Level.Blue, g.Level);
+        }
+
+        [Fact]
+        public void BeginsWithTheStartingTimeInHistory()
+        {
+            var now = DateTime.UtcNow;
+
+            clock.SetupGet(x => x.Now).Returns(now);
+            g = f.Create<Game>();
+
+            Assert.Equal(now.ToString(), g.History.First());
         }
 
         [Theory]
@@ -29,8 +48,7 @@ namespace Zombies.Domain.Tests
         [InlineData(4)]
         public void AddASurvivor(int survivorsToAdd)
         {
-            IEnumerable<Survivor> survivors;
-            var g = GameProvider.CreateGameWithMultipleRandomPlayers(out survivors, survivorsToAdd);
+            var survivors = GameProvider.CreateGameWithMultipleRandomPlayers(g, survivorsToAdd);
 
             Assert.Equal(survivorsToAdd, g.Survivors);
         }
@@ -42,7 +60,6 @@ namespace Zombies.Domain.Tests
             var s1 = SurvivorProvider.CreateRandomSurvivor(survivorName);
             var s2 = SurvivorProvider.CreateRandomSurvivor(survivorName);
 
-            var g = new Game();
             g.AddSurvivor(s1);
 
             Assert.Throws<InvalidOperationException>(() => g.AddSurvivor(s2));
@@ -52,9 +69,7 @@ namespace Zombies.Domain.Tests
         [InlineData(3)]
         public void EndWhenAllTheSurvivorsDie(int survivorsToAdd)
         {
-            IEnumerable<Survivor> survivors;
-
-            var g = GameProvider.CreateGameWithMultipleRandomPlayers(out survivors, survivorsToAdd);
+            var survivors = GameProvider.CreateGameWithMultipleRandomPlayers(g, survivorsToAdd);
 
             foreach (var s in survivors)
                 while (s.IsAlive)
@@ -70,11 +85,8 @@ namespace Zombies.Domain.Tests
         [InlineData(Level.Red)]
         public void HaveALevelMatchingTheHighestSurvivorLevel(Level maxLevelToGainByASurvivor)
         {
-            IEnumerable<Survivor> survivors;
-
             var survivorsToAdd = 3;
-            var g = GameProvider.CreateGameWithMultipleRandomPlayers(out survivors, survivorsToAdd);
-
+            var survivors = GameProvider.CreateGameWithMultipleRandomPlayers(g, survivorsToAdd);
 
             var s = survivors.ToList().ElementAt(2);
 
