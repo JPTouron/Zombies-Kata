@@ -58,7 +58,6 @@ namespace Zombies.Domain
             _ => Level.Red    // default value
         };
 
-
         public void Attack(IZombieUnderAttack z)
         {
             z.Wound(this);

@@ -4,23 +4,20 @@ using System.Linq;
 
 namespace Zombies.Domain
 {
-
-    public interface IClock { 
-    
-    
+    public interface IClock
+    {
         public DateTime Now { get; }
     }
 
     public class Game
     {
-        private readonly IClock clock;
         private IList<Survivor> survivors;
+        private List<string> history;
 
         public Game(IClock clock)
         {
-            this.clock = clock;
             survivors = new List<Survivor>();
-            History = new List<string> { clock.Now.ToString() };
+            history = new List<string> { clock.Now.ToString() };
         }
 
         public int Survivors => survivors.Count;
@@ -32,7 +29,7 @@ namespace Zombies.Domain
                                       .DefaultIfEmpty(Level.Blue)
                                       .Max();
 
-        public IReadOnlyCollection<string> History { get; }
+        public IReadOnlyCollection<string> History => history;
 
         public void AddSurvivor(Survivor s)
         {
@@ -40,6 +37,10 @@ namespace Zombies.Domain
                 throw new InvalidOperationException($"A player with name {s.Name} already exists, cannot add another survivor with that name to the game.");
 
             survivors.Add(s);
+
+
+            history.Add($"Survivor {s.Name} has joined the game");
+
         }
     }
 }

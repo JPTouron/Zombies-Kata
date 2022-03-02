@@ -11,17 +11,17 @@ namespace Zombies.Domain.Tests
         [InlineData(true, 1)]
         public void GainOneExperiencePointWhenKillingAZombie(bool killZombie, int gainedExperience)
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            var initialExp = s.Experience;
+            var initialExp = survivor.Experience;
 
             var z = new Zombie();
 
             if (killZombie)
                 while (z.IsAlive)
-                    s.Attack(z);
+                    survivor.Attack(z);
 
-            Assert.Equal(gainedExperience, s.Experience);
+            Assert.Equal(gainedExperience, survivor.Experience);
         }
 
         [Theory]
@@ -34,18 +34,18 @@ namespace Zombies.Domain.Tests
         [InlineData(42, Level.Red)]
         public void LevelUp(int zombiesToKill, Level expectedLevel)
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
             for (int i = 0; i < zombiesToKill; i++)
             {
                 var z = new Zombie();
 
                 while (z.IsAlive)
-                    s.Attack(z);
+                    survivor.Attack(z);
             }
 
-            Assert.Equal(zombiesToKill, s.Experience);
-            Assert.Equal(expectedLevel, s.Level);
+            Assert.Equal(zombiesToKill, survivor.Experience);
+            Assert.Equal(expectedLevel, survivor.Level);
         }
 
         [Theory]
@@ -53,9 +53,9 @@ namespace Zombies.Domain.Tests
         [InlineData("Martin")]
         public void HaveAName(string name)
         {
-            var s = SurvivorProvider.CreateRandomSurvivor(name);
+            var survivor = SurvivorProvider.CreateRandomSurvivor(name);
 
-            Assert.Equal(name, s.Name);
+            Assert.Equal(name, survivor.Name);
         }
 
         [Theory]
@@ -69,9 +69,9 @@ namespace Zombies.Domain.Tests
         [Fact]
         public void BeCreatedWithZeroWounds()
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            Assert.Equal(0, s.Wounds);
+            Assert.Equal(0, survivor.Wounds);
         }
 
         [Fact]
@@ -85,18 +85,18 @@ namespace Zombies.Domain.Tests
         [Fact]
         public void BeCreatedWithAbilityToPerformUpToThreeActionsPerTurn()
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            Assert.Equal(3, s.AvailableActionsInTurn);
+            Assert.Equal(3, survivor.AvailableActionsInTurn);
         }
 
         [Fact]
         public void BeCreatedWithNoEquipment()
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            Assert.Equal(0, s.InHand);
-            Assert.Equal(0, s.InReserve);
+            Assert.Equal(0, survivor.InHand);
+            Assert.Equal(0, survivor.InReserve);
         }
 
         [Theory]
@@ -105,15 +105,15 @@ namespace Zombies.Domain.Tests
         [InlineData(10)]
         public void HaveUpToFiveEquipmentItems(int equipmentToAdd)
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
             for (int i = 0; i < equipmentToAdd; i++)
             {
                 var e = new Fixture().Create<string>();
-                s.AddEquipment(e);
+                survivor.AddEquipment(e);
             }
 
-            Assert.Equal(5, s.InHand + s.InReserve);
+            Assert.Equal(5, survivor.InHand + survivor.InReserve);
         }
 
         [Theory]
@@ -121,15 +121,15 @@ namespace Zombies.Domain.Tests
         [InlineData((string?)null, typeof(ArgumentNullException))]
         public void OnlyAddEquipmentWhenNameIsNotNorrOrEmpty(string equipmentName, Type exceptionType)
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            Assert.Throws(exceptionType, () => s.AddEquipment(equipmentName));
+            Assert.Throws(exceptionType, () => survivor.AddEquipment(equipmentName));
         }
 
         [Fact]
         public void AddEquipmentToHandsFirstAndThenToReserve()
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
             var equipmentToAdd = new Fixture().CreateMany<string>(5);
 
@@ -137,39 +137,39 @@ namespace Zombies.Domain.Tests
             foreach (var equipment in equipmentToAdd)
             {
                 i++;
-                s.AddEquipment(equipment);
+                survivor.AddEquipment(equipment);
 
                 if (i <= 2)
                 {
-                    Assert.Equal(i, s.InHand);
-                    Assert.Equal(0, s.InReserve);
+                    Assert.Equal(i, survivor.InHand);
+                    Assert.Equal(0, survivor.InReserve);
                 }
                 if (i > 2)
                 {
-                    Assert.Equal(i - 2, s.InReserve);
-                    Assert.Equal(2, s.InHand);
+                    Assert.Equal(i - 2, survivor.InReserve);
+                    Assert.Equal(2, survivor.InHand);
                 }
             }
 
-            Assert.Equal(2, s.InHand);
-            Assert.Equal(3, s.InReserve);
+            Assert.Equal(2, survivor.InHand);
+            Assert.Equal(3, survivor.InReserve);
         }
 
         [Theory]
         [InlineData(1, 4)]
         public void DropsTheLatestAddedEquipmentWhenWounded(int woundsToReceive, int remainingEquipment)
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
             var equipmentToAdd = new Fixture().CreateMany<string>(5);
 
             foreach (var equipment in equipmentToAdd)
-                s.AddEquipment(equipment);
+                survivor.AddEquipment(equipment);
 
             for (int i = 0; i < woundsToReceive; i++)
-                s.Wound();
+                survivor.Wound();
 
-            Assert.Equal(remainingEquipment, s.InHand + s.InReserve);
+            Assert.Equal(remainingEquipment, survivor.InHand + survivor.InReserve);
         }
 
         [Theory]
@@ -181,30 +181,30 @@ namespace Zombies.Domain.Tests
         {
             var name = new Fixture().Create<string>();
 
-            var s = new Survivor(name);
+            var survivor = new Survivor(name);
 
             for (int i = 0; i < woundsToInflict; i++)
             {
-                s.Wound();
+                survivor.Wound();
             }
 
-            Assert.Equal(shouldBeAlive, s.IsAlive);
+            Assert.Equal(shouldBeAlive, survivor.IsAlive);
         }
 
         [Fact]
         public void BeCreatedWithZeroExperience()
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            Assert.Equal(0, s.Experience);
+            Assert.Equal(0, survivor.Experience);
         }
 
         [Fact]
         public void BeCreatedWithLevelBlue()
         {
-            var s = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            Assert.Equal(Level.Blue, s.Level);
+            Assert.Equal(Level.Blue, survivor.Level);
         }
     }
 }

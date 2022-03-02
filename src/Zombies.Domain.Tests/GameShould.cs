@@ -9,38 +9,38 @@ namespace Zombies.Domain.Tests
 {
     public class GameShould
     {
-        private IFixture f;
+        private IFixture fixture;
         private Mock<IClock> clock;
-        private Game g;
+        private Game game;
 
         public GameShould()
         {
-            f = new Fixture().Customize(new AutoMoqCustomization());
-            clock = f.Freeze<Mock<IClock>>();
-            g = f.Create<Game>();
+            fixture = new Fixture().Customize(new AutoMoqCustomization());
+            clock = fixture.Freeze<Mock<IClock>>();
+            game = fixture.Create<Game>();
         }
 
         [Fact]
-        public void BeginsWithZeroSurvivors()
+        public void BeginWithZeroSurvivors()
         {
-            Assert.Equal(0, g.Survivors);
+            Assert.Equal(0, game.Survivors);
         }
 
         [Fact]
-        public void BeginsWithLevelBlue()
+        public void BeginWithLevelBlue()
         {
-            Assert.Equal(Level.Blue, g.Level);
+            Assert.Equal(Level.Blue, game.Level);
         }
 
         [Fact]
-        public void BeginsWithTheStartingTimeInHistory()
+        public void BeginWithTheStartingTimeInHistory()
         {
             var now = DateTime.UtcNow;
 
             clock.SetupGet(x => x.Now).Returns(now);
-            g = f.Create<Game>();
+            game = fixture.Create<Game>();
 
-            Assert.Equal(now.ToString(), g.History.First());
+            Assert.Equal(now.ToString(), game.History.First());
         }
 
         [Theory]
@@ -48,9 +48,19 @@ namespace Zombies.Domain.Tests
         [InlineData(4)]
         public void AddASurvivor(int survivorsToAdd)
         {
-            var survivors = GameProvider.CreateGameWithMultipleRandomPlayers(g, survivorsToAdd);
+            GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
 
-            Assert.Equal(survivorsToAdd, g.Survivors);
+            Assert.Equal(survivorsToAdd, game.Survivors);
+        }
+
+        [Fact]
+        public void RecordASurvivorWasAddedInTheHistory()
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+            game.AddSurvivor(survivor);
+
+            Assert.Equal(2, game.History.Count);
+            Assert.Equal($"Survivor {survivor.Name} has joined the game", game.History.Last());
         }
 
         [Fact]
@@ -60,22 +70,22 @@ namespace Zombies.Domain.Tests
             var s1 = SurvivorProvider.CreateRandomSurvivor(survivorName);
             var s2 = SurvivorProvider.CreateRandomSurvivor(survivorName);
 
-            g.AddSurvivor(s1);
+            game.AddSurvivor(s1);
 
-            Assert.Throws<InvalidOperationException>(() => g.AddSurvivor(s2));
+            Assert.Throws<InvalidOperationException>(() => game.AddSurvivor(s2));
         }
 
         [Theory]
         [InlineData(3)]
         public void EndWhenAllTheSurvivorsDie(int survivorsToAdd)
         {
-            var survivors = GameProvider.CreateGameWithMultipleRandomPlayers(g, survivorsToAdd);
+            var survivors = GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
 
             foreach (var s in survivors)
                 while (s.IsAlive)
                     s.Wound();
 
-            Assert.True(g.HasEnded);
+            Assert.True(game.HasEnded);
         }
 
         [Theory]
@@ -86,7 +96,7 @@ namespace Zombies.Domain.Tests
         public void HaveALevelMatchingTheHighestSurvivorLevel(Level maxLevelToGainByASurvivor)
         {
             var survivorsToAdd = 3;
-            var survivors = GameProvider.CreateGameWithMultipleRandomPlayers(g, survivorsToAdd);
+            var survivors = GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
 
             var s = survivors.ToList().ElementAt(2);
 
@@ -97,8 +107,8 @@ namespace Zombies.Domain.Tests
                     s.Attack(z);
             }
 
-            Assert.Equal(s.Level, g.Level);
-            Assert.Equal(maxLevelToGainByASurvivor, g.Level);
+            Assert.Equal(s.Level, game.Level);
+            Assert.Equal(maxLevelToGainByASurvivor, game.Level);
         }
     }
 }

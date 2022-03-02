@@ -5,9 +5,8 @@ namespace Zombies.Domain.Tests
 {
     internal static class GameProvider
     {
-        internal static IEnumerable<Survivor> CreateGameWithMultipleRandomPlayers( Game g, int survivorsToAdd)
+        internal static IEnumerable<Survivor> AddSurvivorsToAGame(Game g, int survivorsToAdd)
         {
-
             var survivors = new Fixture().CreateMany<Survivor>(survivorsToAdd);
 
             foreach (var s in survivors)

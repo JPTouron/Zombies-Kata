@@ -5,7 +5,6 @@
         string Name { get; }
     }
 
-    
     public class Zombie : IZombieUnderAttack
     {
         public Zombie()
