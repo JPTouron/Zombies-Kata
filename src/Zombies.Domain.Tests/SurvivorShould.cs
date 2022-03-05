@@ -239,7 +239,20 @@ namespace Zombies.Domain.Tests
 
             survivor.LevelUpSurvivorTo(Level.Yellow);
 
-            Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x, "Action +1", StringComparison.InvariantCultureIgnoreCase) == 0);
+            Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x, "+1 Action", StringComparison.InvariantCultureIgnoreCase) == 0);
+        }
+
+        [Theory]
+        [InlineData(Level.Yellow)]
+        [InlineData(Level.Orange)]
+        [InlineData(Level.Red)]
+        public void HaveFourAvailableActionsInTurnAfterReachingYellowLevel(Level levelUpTo)
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            survivor.LevelUpSurvivorTo(levelUpTo);
+
+            Assert.Equal(4, survivor.AvailableActionsInTurn);
         }
     }
 }

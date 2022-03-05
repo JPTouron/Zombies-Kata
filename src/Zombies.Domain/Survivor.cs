@@ -43,6 +43,8 @@ namespace Zombies.Domain
 
         private ISkillTree skillTree;
 
+        private int availableActionsInTurn;
+
         public event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
 
         public event SurvivorDiedEventHandler survivorDiedEventHandler;
@@ -58,7 +60,7 @@ namespace Zombies.Domain
             Name = name;
             Wounds = 0;
             Experience = 0;
-            AvailableActionsInTurn = 3;
+            availableActionsInTurn = 3;
             lastLevelObtained = Level;
             skillTree = new SkillTree();
             equipmentInHand = new List<string>();
@@ -76,7 +78,7 @@ namespace Zombies.Domain
 
         public int Wounds { get; private set; }
 
-        public int AvailableActionsInTurn { get; }
+        public int AvailableActionsInTurn => availableActionsInTurn;
 
         public int InHand => equipmentInHand.Count;
 
@@ -115,7 +117,7 @@ namespace Zombies.Domain
             if (z.IsDead == false)
                 Experience++;
 
-            UpdateLastLevelObtainedIfLeveledUp();
+            LevelUpSurvivorIfEnoughExperiencePointsReached();
         }
 
         public void AddEquipment(string equipmentName)
@@ -155,12 +157,16 @@ namespace Zombies.Domain
                 survivorDiedEventHandler(Name);
         }
 
-        private void UpdateLastLevelObtainedIfLeveledUp()
+        private void LevelUpSurvivorIfEnoughExperiencePointsReached()
         {
-            if (lastLevelObtained < Level)
+            var hasLeveledUp = lastLevelObtained < Level;
+            if (hasLeveledUp)
             {
                 lastLevelObtained = Level;
                 survivorHasLeveledUpEventHandler?.Invoke(Name, Level);
+
+                if (Level == Level.Yellow)
+                    availableActionsInTurn++;
             }
         }
     }
