@@ -9,6 +9,17 @@ namespace Zombies.Domain
         public DateTime Now { get; }
     }
 
+    public interface IPlayingSurvivor : ISurvivorEvents
+    {
+        bool IsAlive { get; }
+
+        bool IsDead { get; }
+
+        Level Level { get; }
+
+        string Name { get; }
+    }
+
     public interface ISurvivorEvents
     {
         event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
@@ -22,17 +33,17 @@ namespace Zombies.Domain
 
     public class Game
     {
-        private IList<Survivor> survivors;
+        private IList<IPlayingSurvivor> survivors;
 
         private List<string> history;
 
         public Game(IClock clock)
         {
-            survivors = new List<Survivor>();
+            survivors = new List<IPlayingSurvivor>();
             history = new List<string> { clock.Now.ToString() };
         }
 
-        public int Survivors => survivors.Count;
+        public int PlayingSurvivors => survivors.Count;
 
         public bool HasEnded => survivors.All(x => x.IsDead);
 
@@ -43,7 +54,7 @@ namespace Zombies.Domain
 
         public IReadOnlyCollection<string> History => history;
 
-        public void AddSurvivor(Survivor s)
+        public void AddSurvivor(IPlayingSurvivor s)
         {
             if (survivors.Any(x => x.Name == s.Name))
                 throw new InvalidOperationException($"A player with name {s.Name} already exists, cannot add another survivor with that name to the game.");

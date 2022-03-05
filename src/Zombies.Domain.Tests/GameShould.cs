@@ -23,7 +23,7 @@ namespace Zombies.Domain.Tests
         [Fact]
         public void BeginWithZeroSurvivors()
         {
-            Assert.Equal(0, game.Survivors);
+            Assert.Equal(0, game.PlayingSurvivors);
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Zombies.Domain.Tests
         {
             GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
 
-            Assert.Equal(survivorsToAdd, game.Survivors);
+            Assert.Equal(survivorsToAdd, game.PlayingSurvivors);
         }
 
         [Fact]

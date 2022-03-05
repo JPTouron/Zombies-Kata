@@ -20,7 +20,7 @@ namespace Zombies.Domain
         Red
     }
 
-    public class Survivor : IKillingSurvivor, ISurvivorEvents
+    public class Survivor : IPlayingSurvivor, IKillingSurvivor
     {
         private List<string> equipmentInHand;
 
