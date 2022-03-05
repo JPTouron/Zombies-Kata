@@ -25,6 +25,7 @@ namespace Zombies.Domain
         private List<string> equipmentInHand;
 
         private List<string> equipmentInReserve;
+        private Level lastLevelObtained;
 
         public Survivor(string name)
         {
@@ -34,6 +35,7 @@ namespace Zombies.Domain
             Wounds = 0;
             Experience = 0;
             AvailableActionsInTurn = 3;
+            lastLevelObtained = Level;
             equipmentInHand = new List<string>();
             equipmentInReserve = new List<string>();
         }
@@ -41,6 +43,10 @@ namespace Zombies.Domain
         public event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
 
         public event SurvivorDiedEventHandler survivorDiedEventHandler;
+
+        public event SurvivorWoundedEventHandler survivorWoundedEventHandler;
+
+        public event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
 
         public string Name { get; }
 
@@ -72,6 +78,8 @@ namespace Zombies.Domain
 
             if (z.IsDead == false)
                 Experience++;
+
+            UpdateLastLevelObtainedIfLeveledUp();
         }
 
         public void AddEquipment(string equipmentName)
@@ -88,7 +96,7 @@ namespace Zombies.Domain
                 equipmentInHand.Add(equipmentName);
             }
 
-            PublishEvent(survivorAddedEquipmentEventHandler, equipmentName);
+            survivorAddedEquipmentEventHandler?.Invoke(Name, equipmentName);
         }
 
         public void Wound()
@@ -102,16 +110,22 @@ namespace Zombies.Domain
 
                 if (InReserve == 0 && InHand > 0)
                     equipmentInHand.RemoveAt(InHand - 1);
+
+                if (survivorWoundedEventHandler != null)
+                    survivorWoundedEventHandler(Name);
             }
 
             if (IsDead && survivorDiedEventHandler != null)
                 survivorDiedEventHandler(Name);
         }
 
-        private void PublishEvent(SurvivorAddedEquipmentEventHandler equipmentAdded, string equipmentName)
+        private void UpdateLastLevelObtainedIfLeveledUp()
         {
-            if (equipmentAdded != null)
-                equipmentAdded(this.Name, equipmentName);
+            if (lastLevelObtained < Level)
+            {
+                lastLevelObtained = Level;
+                survivorHasLeveledUpEventHandler?.Invoke(Name, Level);
+            }
         }
     }
 }

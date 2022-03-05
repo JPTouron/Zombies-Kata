@@ -1,6 +1,5 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
-using AutoFixture.Kernel;
 using Moq;
 using System;
 using System.Linq;
@@ -17,7 +16,7 @@ namespace Zombies.Domain.Tests
         public GameShould()
         {
             fixture = new Fixture().Customize(new AutoMoqCustomization());
-            
+
             clock = fixture.Freeze<Mock<IClock>>();
 
             //Whenever a IGameHistory is required, then Provide it using the static method in game
@@ -71,7 +70,7 @@ namespace Zombies.Domain.Tests
 
             Assert.Equal(2, game.History.Count);
             Assert.Equal(now, game.History.Last().IncidentDate);
-            Assert.Equal($"Survivor {survivor.Name} has joined the game", game.History.Last().Incident);
+            Assert.Contains(game.History, x => x.Incident == $"Survivor {survivor.Name} has joined the game");
         }
 
         [Fact]
@@ -85,9 +84,90 @@ namespace Zombies.Domain.Tests
             var addedEquipment = "equipment";
             survivor.AddEquipment(addedEquipment);
 
-            Assert.Equal(3, game.History.Count);
             Assert.Equal(now, game.History.Last().IncidentDate);
-            Assert.Equal($"Survivor {survivor.Name} acquired {addedEquipment}", game.History.Last().Incident);
+            Assert.Contains(game.History, x => x.Incident == $"Survivor {survivor.Name} acquired {addedEquipment}");
+        }
+
+        [Fact]
+        public void RecordASurvivorWasWoundedInTheHistory()
+        {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+            game.AddSurvivor(survivor);
+            survivor.Wound();
+
+            Assert.Equal(now, game.History.Last().IncidentDate);
+            Assert.Contains(game.History, x => x.Incident == $"Survivor {survivor.Name} has been wounded!");
+        }
+
+        [Fact]
+        public void RecordASurvivorDiedInTheHistory()
+        {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+            game.AddSurvivor(survivor);
+            KillSurvivor(survivor);
+
+            Assert.Equal(now, game.History.Last().IncidentDate);
+            Assert.Contains(game.History, x => x.Incident == $"Survivor {survivor.Name} has died!");
+        }
+
+        [Fact]
+        public void RecordASurvivorHasLeveledUpInTheHistory()
+        {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+            game.AddSurvivor(survivor);
+
+            var expectedSurvivorLevel = Level.Yellow;
+            LevelUpSurvivorTo(expectedSurvivorLevel, survivor);
+
+            Assert.Equal(now, game.History.Last().IncidentDate);
+            Assert.Contains(game.History, x => x.Incident == $"Survivor {survivor.Name} LeveledUp to level: {expectedSurvivorLevel}!");
+        }
+
+        [Fact]
+        public void RecordTheGameHasLeveledUpInTheHistory()
+        {
+            var expectedGameLevel = Level.Orange;
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
+            var s1 = SurvivorProvider.CreateRandomSurvivor();
+            game.AddSurvivor(s1);
+            var s2 = SurvivorProvider.CreateRandomSurvivor();
+            game.AddSurvivor(s2);
+
+            LevelUpSurvivorTo(expectedGameLevel, s1);
+            LevelUpSurvivorTo(Level.Yellow, s1);
+
+            Assert.Equal(now, game.History.Last().IncidentDate);
+            Assert.Equal($"The Game has LeveledUp to level: {expectedGameLevel}!", game.History.Last().Incident);
+        }
+
+        [Fact]
+        public void RecordTheGameHasEndedInTheHistory()
+        {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
+            var s1 = SurvivorProvider.CreateRandomSurvivor("s1");
+            game.AddSurvivor(s1);
+
+            var s2 = SurvivorProvider.CreateRandomSurvivor("s2");
+            game.AddSurvivor(s2);
+
+            KillSurvivor(s1);
+            KillSurvivor(s2);
+
+            Assert.Equal(now, game.History.Last().IncidentDate);
+            Assert.Equal($"The Game has Ended. All survivors have died... Max level reached: {game.Level}", game.History.Last().Incident);
         }
 
         [Fact]
@@ -108,9 +188,8 @@ namespace Zombies.Domain.Tests
         {
             var survivors = GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
 
-            foreach (var s in survivors)
-                while (s.IsAlive)
-                    s.Wound();
+            foreach (var survivor in survivors)
+                KillSurvivor(survivor);
 
             Assert.True(game.HasEnded);
         }
@@ -125,17 +204,32 @@ namespace Zombies.Domain.Tests
             var survivorsToAdd = 3;
             var survivors = GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
 
-            var s = survivors.ToList().ElementAt(2);
+            var survivor = survivors.ToList().ElementAt(2);
 
-            while (s.Level < maxLevelToGainByASurvivor)
-            {
-                var z = new Zombie();
-                while (z.IsAlive)
-                    s.Attack(z);
-            }
+            LevelUpSurvivorTo(maxLevelToGainByASurvivor, survivor);
 
-            Assert.Equal(s.Level, game.Level);
+            Assert.Equal(survivor.Level, game.Level);
             Assert.Equal(maxLevelToGainByASurvivor, game.Level);
+        }
+
+        private static void LevelUpSurvivorTo(Level levelToGoTo, Survivor survivor)
+        {
+            while (survivor.Level < levelToGoTo)
+                KillAZombie(survivor);
+        }
+
+        private static void KillSurvivor(Survivor survivor)
+        {
+            while (survivor.IsAlive)
+                survivor.Wound();
+        }
+
+        private static void KillAZombie(Survivor survivor)
+        {
+            var zombie = new Zombie();
+
+            while (zombie.IsAlive)
+                survivor.Attack(zombie);
         }
     }
 }

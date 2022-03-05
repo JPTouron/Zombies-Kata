@@ -4,7 +4,6 @@ using System.Linq;
 
 namespace Zombies.Domain
 {
-
     public interface ISurvivorName
     {
         string Name { get; }
@@ -19,20 +18,18 @@ namespace Zombies.Domain
         Level Level { get; }
     }
 
-
-    public delegate void SurvivorAddedEquipmentEventHandler(string survivorName, string addedEquipment);
-
-    public delegate void SurvivorDiedEventHandler(string survivorName);
-
     public partial class Game : IGameEvents
     {
         private readonly IGameHistoryTracker history;
         private IList<IPlayingSurvivor> survivors;
 
+        private Level lastUpgradedLevel;
+
         public Game(IGameHistoryTracker history)
         {
             survivors = new List<IPlayingSurvivor>();
             this.history = history;
+            lastUpgradedLevel = Level;
             TrackThisGameInHistoryAndRecordStart(history);
         }
 
@@ -41,6 +38,8 @@ namespace Zombies.Domain
         public event GameEndedEventHandler gameEndedEventHandler;
 
         public event GameStartedEventHandler gameStartedEventHandler;
+
+        public event GameLeveledUpEventHandler gameLeveledUpEventHandler;
 
         public int PlayingSurvivors => survivors.Count;
 
@@ -71,15 +70,49 @@ namespace Zombies.Domain
 
         private void RecordGameStarted()
         {
-            if (gameStartedEventHandler != null)
-                gameStartedEventHandler();
+            gameStartedEventHandler?.Invoke();
         }
 
         private void TrackSurvivorHistoryAndRecordSurvivorAddedGame(IPlayingSurvivor s)
         {
             history.TrackSurvivor(s);
-            if (survivorJoinedTheGameEventHandler != null)
-                survivorJoinedTheGameEventHandler(s.Name);
+            survivorJoinedTheGameEventHandler?.Invoke(s.Name);
+
+            SubscribeToSurvivorEvents(s);
+        }
+
+        private void SubscribeToSurvivorEvents(IPlayingSurvivor s)
+        {
+            var ss = (ISurvivorBasicEvents)s;
+
+            ss.survivorDiedEventHandler += OnSurvivorDiedEventHandler;
+            ss.survivorHasLeveledUpEventHandler += OnSurvivorHasLeveledUpEventHandler;
+        }
+
+        private void OnSurvivorHasLeveledUpEventHandler(string survivorName, Level newSurvivorLevel)
+        {
+            if (lastUpgradedLevel < Level)
+            {
+                lastUpgradedLevel = Level;
+                gameLeveledUpEventHandler?.Invoke(Level);
+            }
+        }
+
+        private void OnSurvivorDiedEventHandler(string survivorName)
+        {
+            UnsubscribeFromSurvivorEvents(survivorName);
+
+            if (HasEnded)
+                gameEndedEventHandler?.Invoke(this, Level);
+        }
+
+        private void UnsubscribeFromSurvivorEvents(string survivorName)
+        {
+            if (survivors.SingleOrDefault(x => x.Name == survivorName) is ISurvivorBasicEvents maybeSurvivor)
+            {
+                maybeSurvivor.survivorDiedEventHandler -= OnSurvivorDiedEventHandler;
+                maybeSurvivor.survivorHasLeveledUpEventHandler -= OnSurvivorHasLeveledUpEventHandler;
+            }
         }
     }
 }
