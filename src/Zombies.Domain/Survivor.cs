@@ -46,7 +46,7 @@ namespace Zombies.Domain
 
         public event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
 
-        public Survivor(string name)
+        private Survivor(string name)
         {
             Guard.Against.NullOrEmpty(name, nameof(name));
 
@@ -55,8 +55,16 @@ namespace Zombies.Domain
             Experience = 0;
             AvailableActionsInTurn = 3;
             lastLevelObtained = Level;
+            Skills = new SkillTree();
             equipmentInHand = new List<string>();
             equipmentInReserve = new List<string>();
+        }
+
+        private Survivor(string name, ISkillTree skillTree) : this(name)
+        {
+            Guard.Against.Null(skillTree, nameof(skillTree));
+
+            Skills = skillTree;
         }
 
         public string Name { get; }
@@ -82,6 +90,18 @@ namespace Zombies.Domain
             >= 18 and <= 41 => Level.Orange,
             _ => Level.Red    // default value
         };
+
+        public ISkillTree Skills { get; }
+
+        public static Survivor CreateWithEmptySkillTree(string name)
+        {
+            return new Survivor(name);
+        }
+
+        public static Survivor CreateWithSkillTree(string name, ISkillTree skillTree)
+        {
+            return new Survivor(name, skillTree);
+        }
 
         public void Attack(IZombieUnderAttack z)
         {

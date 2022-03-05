@@ -63,7 +63,15 @@ namespace Zombies.Domain.Tests
         [InlineData((string?)null, typeof(ArgumentNullException))]
         public void ThrowErrorOnEmptyNames(string name, Type expectedException)
         {
-            Assert.Throws(expectedException, () => new Survivor(name));
+            Assert.Throws(expectedException, () => Survivor.CreateWithEmptySkillTree(name));
+        }
+
+        [Fact]
+        public void ThrowErrorOnNullSkillTree()
+        {
+            var name = new Fixture().Create<string>();
+
+            Assert.Throws<ArgumentNullException>(() => Survivor.CreateWithSkillTree(name, null));
         }
 
         [Fact]
@@ -97,6 +105,35 @@ namespace Zombies.Domain.Tests
 
             Assert.Equal(0, survivor.InHand);
             Assert.Equal(0, survivor.InReserve);
+        }
+
+        [Fact]
+        public void BeCreatedWithZeroExperience()
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            Assert.Equal(0, survivor.Experience);
+        }
+
+        [Fact]
+        public void BeCreatedWithLevelBlue()
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            Assert.Equal(Level.Blue, survivor.Level);
+        }
+
+        [Fact]
+        public void BeCreatedWithASkillTree()
+        {
+            var name = new Fixture().Create<string>();
+            var survivorWithEmptySkills = Survivor.CreateWithEmptySkillTree(name);
+
+            var skillTree = new SkillTree();
+            var survivorWithLoadedSkills = Survivor.CreateWithSkillTree(name, skillTree);
+
+            Assert.NotNull(survivorWithEmptySkills.Skills);
+            Assert.NotNull(survivorWithLoadedSkills.Skills);
         }
 
         [Theory]
@@ -181,7 +218,7 @@ namespace Zombies.Domain.Tests
         {
             var name = new Fixture().Create<string>();
 
-            var survivor = new Survivor(name);
+            var survivor = Survivor.CreateWithEmptySkillTree(name);
 
             for (int i = 0; i < woundsToInflict; i++)
             {
@@ -190,22 +227,6 @@ namespace Zombies.Domain.Tests
 
             Assert.Equal(shouldBeAlive, survivor.IsAlive);
             Assert.Equal(shouldBeAlive == false, survivor.IsDead);
-        }
-
-        [Fact]
-        public void BeCreatedWithZeroExperience()
-        {
-            var survivor = SurvivorProvider.CreateRandomSurvivor();
-
-            Assert.Equal(0, survivor.Experience);
-        }
-
-        [Fact]
-        public void BeCreatedWithLevelBlue()
-        {
-            var survivor = SurvivorProvider.CreateRandomSurvivor();
-
-            Assert.Equal(Level.Blue, survivor.Level);
         }
     }
 }

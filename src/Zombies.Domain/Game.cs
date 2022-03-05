@@ -4,7 +4,10 @@ using System.Linq;
 
 namespace Zombies.Domain
 {
-    public interface IPlayingSurvivor
+    public interface ISkilledSurvivor { 
+        Level Level { get; }
+    }
+    public interface IPlayingSurvivor: ISkilledSurvivor
     {
         string Name { get; }
 
@@ -12,7 +15,6 @@ namespace Zombies.Domain
 
         bool IsDead { get; }
 
-        Level Level { get; }
     }
 
     public interface IGameSurvivorTrackingEvents

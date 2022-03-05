@@ -9,7 +9,7 @@ namespace Zombies.Domain.Tests
             if (name == null)
                 name = new Fixture().Create<string>();
 
-            var s = new Survivor(name);
+            var s =  Survivor.CreateWithEmptySkillTree(name);
             return s;
         }
     }
