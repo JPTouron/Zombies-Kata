@@ -189,6 +189,7 @@ namespace Zombies.Domain.Tests
             }
 
             Assert.Equal(shouldBeAlive, survivor.IsAlive);
+            Assert.Equal(shouldBeAlive == false, survivor.IsDead);
         }
 
         [Fact]

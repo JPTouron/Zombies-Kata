@@ -61,7 +61,7 @@ The Game includes a running history of events that have taken place as it has be
 
 - [x] A Game's **History** begins by recording the time the Game began.
 - [x] A Game's History notes that a Survivor has been added to the Game.
-- [] A Game's History notes that a Survivor acquires a piece of Equipment.
+- [x] A Game's History notes that a Survivor acquires a piece of Equipment.
 - [] A Game's History notes that a Survivor is wounded.
 - [] A Game's History notes that a Survivor dies.
 - [] A Game's History notes that a Survivor levels up.

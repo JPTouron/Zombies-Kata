@@ -64,6 +64,18 @@ namespace Zombies.Domain.Tests
         }
 
         [Fact]
+        public void RecordASurvivorAcquiredEquipmentInTheHistory()
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+            game.AddSurvivor(survivor);
+            var addedEquipment = "equipment";
+            survivor.AddEquipment(addedEquipment);
+
+            Assert.Equal(3, game.History.Count);
+            Assert.Equal($"Survivor {survivor.Name} acquired {addedEquipment}", game.History.Last());
+        }
+
+        [Fact]
         public void ThrowWhenAddedSurvivorNameIsNotUnique()
         {
             var survivorName = "player 1";

@@ -7,6 +7,8 @@ namespace Zombies.Domain
     {
         bool IsAlive { get; }
 
+        bool IsDead { get; }
+
         void Wound(IKillingSurvivor killingSurvivor);
     }
 
@@ -18,7 +20,7 @@ namespace Zombies.Domain
         Red
     }
 
-    public class Survivor : IKillingSurvivor
+    public class Survivor : IKillingSurvivor, ISurvivorEvents
     {
         private List<string> equipmentInHand;
 
@@ -36,6 +38,10 @@ namespace Zombies.Domain
             equipmentInReserve = new List<string>();
         }
 
+        public event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
+
+        public event SurvivorDiedEventHandler survivorDiedEventHandler;
+
         public string Name { get; }
 
         public int Wounds { get; private set; }
@@ -47,6 +53,8 @@ namespace Zombies.Domain
         public int InReserve => equipmentInReserve.Count;
 
         public bool IsAlive => Wounds < 2;
+
+        public bool IsDead => IsAlive == false;
 
         public int Experience { get; private set; }
 
@@ -62,7 +70,7 @@ namespace Zombies.Domain
         {
             z.Wound(this);
 
-            if (z.IsAlive == false)
+            if (z.IsDead == false)
                 Experience++;
         }
 
@@ -79,6 +87,8 @@ namespace Zombies.Domain
             {
                 equipmentInHand.Add(equipmentName);
             }
+
+            PublishEvent(survivorAddedEquipmentEventHandler, equipmentName);
         }
 
         public void Wound()
@@ -93,6 +103,15 @@ namespace Zombies.Domain
                 if (InReserve == 0 && InHand > 0)
                     equipmentInHand.RemoveAt(InHand - 1);
             }
+
+            if (IsDead && survivorDiedEventHandler != null)
+                survivorDiedEventHandler(Name);
+        }
+
+        private void PublishEvent(SurvivorAddedEquipmentEventHandler equipmentAdded, string equipmentName)
+        {
+            if (equipmentAdded != null)
+                equipmentAdded(this.Name, equipmentName);
         }
     }
 }

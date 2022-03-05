@@ -17,13 +17,15 @@
 
         public bool IsAlive => Health > 0;
 
+        public bool IsDead => IsAlive == false;
+
         public string KilledBy { get; private set; }
 
         public void Wound(IKillingSurvivor killingSurvivor)
         {
             Health--;
 
-            if (IsAlive == false)
+            if (IsDead)
                 KilledBy = killingSurvivor.Name;
         }
     }

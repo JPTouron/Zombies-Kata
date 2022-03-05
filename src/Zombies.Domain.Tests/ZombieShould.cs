@@ -30,6 +30,7 @@ namespace Zombies.Domain.Tests
             z.Wound(s);
 
             Assert.False(z.IsAlive);
+            Assert.True(z.IsDead);
         }
 
         [Fact]
