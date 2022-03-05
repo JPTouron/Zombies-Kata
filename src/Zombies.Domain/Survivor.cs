@@ -53,25 +53,19 @@ namespace Zombies.Domain
 
         public event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
 
-        private Survivor(string name)
+        public Survivor(string name, SkillTreeFactory skillTree)
         {
             Guard.Against.NullOrEmpty(name, nameof(name));
+            Guard.Against.Null(skillTree, nameof(skillTree));
 
             Name = name;
             Wounds = 0;
             Experience = 0;
             availableActionsInTurn = 3;
             lastLevelObtained = Level;
-            skillTree = new SkillTree();
+            this.skillTree = skillTree.Create(this);
             equipmentInHand = new List<string>();
             equipmentInReserve = new List<string>();
-        }
-
-        private Survivor(string name, ISkillTree skillTree) : this(name)
-        {
-            Guard.Against.Null(skillTree, nameof(skillTree));
-
-            skillTree = skillTree;
         }
 
         public string Name { get; }
@@ -98,17 +92,7 @@ namespace Zombies.Domain
             _ => Level.Red    // default value
         };
 
-        public IReadOnlyCollection<string> UnlockedSkills => skillTree.UnlockedSkills(this);
-
-        public static Survivor CreateWithEmptySkillTree(string name)
-        {
-            return new Survivor(name);
-        }
-
-        public static Survivor CreateWithSkillTree(string name, ISkillTree skillTree)
-        {
-            return new Survivor(name, skillTree);
-        }
+        public IReadOnlyCollection<string> UnlockedSkills => skillTree.UnlockedSkills();
 
         public void Attack(IZombieUnderAttack z)
         {

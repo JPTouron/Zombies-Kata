@@ -63,7 +63,7 @@ namespace Zombies.Domain.Tests
         [InlineData((string?)null, typeof(ArgumentNullException))]
         public void ThrowErrorOnEmptyNames(string name, Type expectedException)
         {
-            Assert.Throws(expectedException, () => Survivor.CreateWithEmptySkillTree(name));
+            Assert.Throws(expectedException, () => new Survivor(name, new SkillTreeFactory()));
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace Zombies.Domain.Tests
         {
             var name = new Fixture().Create<string>();
 
-            Assert.Throws<ArgumentNullException>(() => Survivor.CreateWithSkillTree(name, null));
+            Assert.Throws<ArgumentNullException>(() => new Survivor(name, null));
         }
 
         [Fact]
@@ -126,17 +126,10 @@ namespace Zombies.Domain.Tests
         [Fact]
         public void BeCreatedWithASkillTree()
         {
-            var name = new Fixture().Create<string>();
-            var survivorWithEmptySkills = Survivor.CreateWithEmptySkillTree(name);
-
-            var skillTree = new SkillTree();
-            var survivorWithLoadedSkills = Survivor.CreateWithSkillTree(name, skillTree);
+            var survivorWithEmptySkills = SurvivorProvider.CreateRandomSurvivor();
 
             Assert.NotNull(survivorWithEmptySkills.UnlockedSkills);
-            Assert.NotNull(survivorWithLoadedSkills.UnlockedSkills);
-
             Assert.Empty(survivorWithEmptySkills.UnlockedSkills);
-            Assert.Empty(survivorWithLoadedSkills.UnlockedSkills);
         }
 
         [Theory]
@@ -221,7 +214,7 @@ namespace Zombies.Domain.Tests
         {
             var name = new Fixture().Create<string>();
 
-            var survivor = Survivor.CreateWithEmptySkillTree(name);
+            var survivor = SurvivorProvider.CreateRandomSurvivor(name);
 
             for (int i = 0; i < woundsToInflict; i++)
             {

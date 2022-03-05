@@ -4,17 +4,18 @@ namespace Zombies.Domain.Tests
 {
     internal static class SurvivorProvider
     {
-        public static Survivor CreateRandomSurvivor(string? name = null)
+        public static Survivor CreateRandomSurvivor(string? name = null )
         {
             if (name == null)
                 name = new Fixture().Create<string>();
 
-            var s =  Survivor.CreateWithEmptySkillTree(name);
+            var s = new Survivor(name, new SkillTreeFactory());
             return s;
         }
     }
 
-    internal static class SurvivorExtensions {
+    internal static class SurvivorExtensions
+    {
         public static void LevelUpSurvivorTo(this Survivor survivor, Level levelToGoTo)
         {
             while (survivor.Level < levelToGoTo)

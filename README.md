@@ -70,11 +70,20 @@ The Game includes a running history of events that have taken place as it has be
 
 ## Step Six : Advancement
 
+### Skill tree (Exp points)
+
+|Yellow|Orange|Red|
+|--|--|--|
+|+1 Action (6)|+1 Die (Ranged) (18)|+1 Die (Melee) (42)
+|--|+1 Free Move Action (61)|Hoard (86)
+|--|--|Tough (129)
+
+
 As the Game proceeds, Survivors get better.
 
 - [x] A set of potential **Skills** and the Levels where they are unlocked is called a **Skill Tree**.
 - [] Each Survivor begins with a Skill Tree.
-	- [] A Skill Tree consists of *potential* skills and *unlocked* skills.
+	- [x] A Skill Tree consists of *potential* skills and *unlocked* skills.
 	- [] A Skill Tree begins with 1 *potential* skill at level Yellow, 2 at Orange, and 3 at Red.
 	- [] All Skill Trees have the same Yellow skill: "+1 Action".
 	- [x] Each Survivor can have a Skill Tree unique to themselves.

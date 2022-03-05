@@ -54,7 +54,7 @@ namespace Zombies.Domain.Tests
         [InlineData(4)]
         public void AddASurvivor(int survivorsToAdd)
         {
-            GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
+            GameProvider.AddSurvivorsToAGame(fixture, game, survivorsToAdd);
 
             Assert.Equal(survivorsToAdd, game.PlayingSurvivors);
         }
@@ -187,7 +187,7 @@ namespace Zombies.Domain.Tests
         [InlineData(3)]
         public void EndWhenAllTheSurvivorsDie(int survivorsToAdd)
         {
-            var survivors = GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
+            var survivors = GameProvider.AddSurvivorsToAGame(fixture, game, survivorsToAdd);
 
             foreach (var survivor in survivors)
                 survivor.KillSurvivor();
@@ -203,7 +203,7 @@ namespace Zombies.Domain.Tests
         public void HaveALevelMatchingTheHighestSurvivorLevel(Level maxLevelToGainByASurvivor)
         {
             var survivorsToAdd = 3;
-            var survivors = GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
+            var survivors = GameProvider.AddSurvivorsToAGame(fixture, game, survivorsToAdd);
 
             var survivor = survivors.ToList().ElementAt(2);
 
