@@ -10,9 +10,7 @@ namespace Zombies.Domain.Tests
             var survivors = new Fixture().CreateMany<Survivor>(survivorsToAdd);
 
             foreach (var s in survivors)
-            {
                 g.AddSurvivor(s);
-            }
 
             return survivors;
         }

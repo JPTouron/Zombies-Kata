@@ -4,44 +4,43 @@ using System.Linq;
 
 namespace Zombies.Domain
 {
-    public interface IClock
+
+    public interface ISurvivorName
     {
-        public DateTime Now { get; }
+        string Name { get; }
     }
 
-    public interface IPlayingSurvivor : ISurvivorEvents
+    public interface IPlayingSurvivor : ISurvivorName
     {
         bool IsAlive { get; }
 
         bool IsDead { get; }
 
         Level Level { get; }
-
-        string Name { get; }
     }
 
-    public interface ISurvivorEvents
-    {
-        event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
-
-        event SurvivorDiedEventHandler survivorDiedEventHandler;
-    }
 
     public delegate void SurvivorAddedEquipmentEventHandler(string survivorName, string addedEquipment);
 
     public delegate void SurvivorDiedEventHandler(string survivorName);
 
-    public class Game
+    public partial class Game : IGameEvents
     {
+        private readonly IGameHistoryTracker history;
         private IList<IPlayingSurvivor> survivors;
 
-        private List<string> history;
-
-        public Game(IClock clock)
+        public Game(IGameHistoryTracker history)
         {
             survivors = new List<IPlayingSurvivor>();
-            history = new List<string> { clock.Now.ToString() };
+            this.history = history;
+            TrackThisGameInHistoryAndRecordStart(history);
         }
+
+        public event SurvivorJoinedTheGameEventHandler survivorJoinedTheGameEventHandler;
+
+        public event GameEndedEventHandler gameEndedEventHandler;
+
+        public event GameStartedEventHandler gameStartedEventHandler;
 
         public int PlayingSurvivors => survivors.Count;
 
@@ -52,7 +51,7 @@ namespace Zombies.Domain
                                       .DefaultIfEmpty(Level.Blue)
                                       .Max();
 
-        public IReadOnlyCollection<string> History => history;
+        public IReadOnlyCollection<IRecordedIncident> History => history.RecordedIncidents;
 
         public void AddSurvivor(IPlayingSurvivor s)
         {
@@ -61,35 +60,26 @@ namespace Zombies.Domain
 
             survivors.Add(s);
 
-            history.Add($"Survivor {s.Name} has joined the game");
-
-            SubscribeToSurvivorEvents(s);
+            TrackSurvivorHistoryAndRecordSurvivorAddedGame(s);
         }
 
-        private void SubscribeToSurvivorEvents(ISurvivorEvents s)
+        private void TrackThisGameInHistoryAndRecordStart(IGameHistoryTracker history)
         {
-            s.survivorAddedEquipmentEventHandler += OnSurvivorAddedEquipment;
-            s.survivorDiedEventHandler += OnSurvivorDied;
+            history.TrackGame(this);
+            RecordGameStarted();
         }
 
-        private void OnSurvivorDied(string survivorName)
+        private void RecordGameStarted()
         {
-            UnsubscribeEventsFrom(survivorName);
+            if (gameStartedEventHandler != null)
+                gameStartedEventHandler();
         }
 
-        private void UnsubscribeEventsFrom(string survivorName)
+        private void TrackSurvivorHistoryAndRecordSurvivorAddedGame(IPlayingSurvivor s)
         {
-            var maybeSurvivor = survivors.SingleOrDefault(x => x.Name == survivorName) as ISurvivorEvents;
-            if (maybeSurvivor != null)
-            {
-                maybeSurvivor.survivorAddedEquipmentEventHandler -= OnSurvivorAddedEquipment;
-                maybeSurvivor.survivorDiedEventHandler -= OnSurvivorDied;
-            }
-        }
-
-        private void OnSurvivorAddedEquipment(string survivorName, string addedEquipment)
-        {
-            history.Add($"Survivor {survivorName} acquired {addedEquipment}");
+            history.TrackSurvivor(s);
+            if (survivorJoinedTheGameEventHandler != null)
+                survivorJoinedTheGameEventHandler(s.Name);
         }
     }
 }

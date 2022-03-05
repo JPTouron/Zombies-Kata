@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
+using AutoFixture.Kernel;
 using Moq;
 using System;
 using System.Linq;
@@ -16,7 +17,12 @@ namespace Zombies.Domain.Tests
         public GameShould()
         {
             fixture = new Fixture().Customize(new AutoMoqCustomization());
+            
             clock = fixture.Freeze<Mock<IClock>>();
+
+            //Whenever a IGameHistory is required, then Provide it using the static method in game
+            fixture.Register<IGameHistoryTracker>(() => Game.CreateGameHistoryTracker(clock.Object));
+
             game = fixture.Create<Game>();
         }
 
@@ -33,14 +39,15 @@ namespace Zombies.Domain.Tests
         }
 
         [Fact]
-        public void BeginWithTheStartingTimeInHistory()
+        public void BeginWithRecordingGameStarted()
         {
             var now = DateTime.UtcNow;
 
             clock.SetupGet(x => x.Now).Returns(now);
             game = fixture.Create<Game>();
 
-            Assert.Equal(now.ToString(), game.History.First());
+            Assert.Equal(now, game.History.First().IncidentDate);
+            Assert.Equal("A new game has started", game.History.First().Incident);
         }
 
         [Theory]
@@ -56,23 +63,31 @@ namespace Zombies.Domain.Tests
         [Fact]
         public void RecordASurvivorWasAddedInTheHistory()
         {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
             var survivor = SurvivorProvider.CreateRandomSurvivor();
             game.AddSurvivor(survivor);
 
             Assert.Equal(2, game.History.Count);
-            Assert.Equal($"Survivor {survivor.Name} has joined the game", game.History.Last());
+            Assert.Equal(now, game.History.Last().IncidentDate);
+            Assert.Equal($"Survivor {survivor.Name} has joined the game", game.History.Last().Incident);
         }
 
         [Fact]
         public void RecordASurvivorAcquiredEquipmentInTheHistory()
         {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
             var survivor = SurvivorProvider.CreateRandomSurvivor();
             game.AddSurvivor(survivor);
             var addedEquipment = "equipment";
             survivor.AddEquipment(addedEquipment);
 
             Assert.Equal(3, game.History.Count);
-            Assert.Equal($"Survivor {survivor.Name} acquired {addedEquipment}", game.History.Last());
+            Assert.Equal(now, game.History.Last().IncidentDate);
+            Assert.Equal($"Survivor {survivor.Name} acquired {addedEquipment}", game.History.Last().Incident);
         }
 
         [Fact]
