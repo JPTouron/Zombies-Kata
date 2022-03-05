@@ -12,6 +12,16 @@ namespace Zombies.Domain
         void Wound(IKillingSurvivor killingSurvivor);
     }
 
+    public delegate void SurvivorAddedEquipmentEventHandler(string survivorName, string addedEquipment);
+
+    public delegate void SurvivorDiedEventHandler(string survivorName);
+
+    public delegate void SurvivorWoundedEventHandler(string survivorName);
+
+    public delegate void SurvivorHasLeveledUpEventHandler(string survivorName, Level newLevel);
+
+    public delegate void SurvivorJoinedTheGameEventHandler(string survivorName);
+
     public enum Level
     {
         Blue,
@@ -20,12 +30,21 @@ namespace Zombies.Domain
         Red
     }
 
-    public class Survivor : IPlayingSurvivor, IKillingSurvivor, ISurvivorEvents
+    public class Survivor : IPlayingSurvivor, IKillingSurvivor, ISurvivorHistoryTrackingEvents
     {
-        private List<string> equipmentInHand;
+        private IList<string> equipmentInHand;
 
-        private List<string> equipmentInReserve;
+        private IList<string> equipmentInReserve;
+
         private Level lastLevelObtained;
+
+        public event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
+
+        public event SurvivorDiedEventHandler survivorDiedEventHandler;
+
+        public event SurvivorWoundedEventHandler survivorWoundedEventHandler;
+
+        public event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
 
         public Survivor(string name)
         {
@@ -39,14 +58,6 @@ namespace Zombies.Domain
             equipmentInHand = new List<string>();
             equipmentInReserve = new List<string>();
         }
-
-        public event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
-
-        public event SurvivorDiedEventHandler survivorDiedEventHandler;
-
-        public event SurvivorWoundedEventHandler survivorWoundedEventHandler;
-
-        public event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
 
         public string Name { get; }
 

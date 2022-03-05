@@ -9,18 +9,13 @@ namespace Zombies.Domain
         public DateTime Now { get; }
     }
 
-    public interface ISurvivorEvents : ISurvivorBasicEvents, ISurvivorName
+    public interface ISurvivorHistoryTrackingEvents : IGameSurvivorTrackingEvents
     {
         event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
 
-
         event SurvivorWoundedEventHandler survivorWoundedEventHandler;
 
-    }
-    public interface ISurvivorBasicEvents
-    {
-        event SurvivorDiedEventHandler survivorDiedEventHandler;
-        event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
+        string Name { get; }
     }
 
     public interface IRecordedIncident
@@ -30,7 +25,7 @@ namespace Zombies.Domain
         DateTime IncidentDate { get; }
     }
 
-    public interface IGameEvents
+    public interface IGameHistoryTrackingEvents
     {
         event SurvivorJoinedTheGameEventHandler survivorJoinedTheGameEventHandler;
 
@@ -40,31 +35,6 @@ namespace Zombies.Domain
 
         event GameLeveledUpEventHandler gameLeveledUpEventHandler;
     }
-
-    public interface IGameHistoryTracker
-    {
-        IReadOnlyCollection<IRecordedIncident> RecordedIncidents { get; }
-
-        void TrackSurvivor(IPlayingSurvivor survivor);
-
-        void TrackGame(IGameEvents game);
-    }
-
-    public delegate void SurvivorAddedEquipmentEventHandler(string survivorName, string addedEquipment);
-
-    public delegate void SurvivorDiedEventHandler(string survivorName);
-
-    public delegate void SurvivorWoundedEventHandler(string survivorName);
-
-    public delegate void SurvivorHasLeveledUpEventHandler(string survivorName, Level newLevel);
-
-    public delegate void SurvivorJoinedTheGameEventHandler(string survivorName);
-
-    public delegate void GameEndedEventHandler(IGameEvents game, Level gameLevel);
-
-    public delegate void GameStartedEventHandler();
-
-    public delegate void GameLeveledUpEventHandler(Level newLevel);
 
     public partial class Game
     {
@@ -82,13 +52,13 @@ namespace Zombies.Domain
 
             private IList<IRecordedIncident> recordedIncidents;
 
-            private IList<ISurvivorEvents> trackedSurvivors;
+            private IList<ISurvivorHistoryTrackingEvents> trackedSurvivors;
 
             public GameHistoryTracker(IClock clock)
             {
                 this.clock = clock;
                 recordedIncidents = new List<IRecordedIncident>();
-                trackedSurvivors = new List<ISurvivorEvents>();
+                trackedSurvivors = new List<ISurvivorHistoryTrackingEvents>();
             }
 
             public IReadOnlyCollection<IRecordedIncident> RecordedIncidents => (IReadOnlyCollection<IRecordedIncident>)recordedIncidents;
@@ -98,7 +68,7 @@ namespace Zombies.Domain
                 SubscribeToSurvivorEvents(survivor);
             }
 
-            public void TrackGame(IGameEvents game)
+            public void TrackGame(IGameHistoryTrackingEvents game)
             {
                 SubscribeToGameEvents(game);
             }
@@ -111,7 +81,7 @@ namespace Zombies.Domain
 
             private void SubscribeToSurvivorEvents(IPlayingSurvivor survivor)
             {
-                var survivorEvs = (ISurvivorEvents)survivor;
+                var survivorEvs = (ISurvivorHistoryTrackingEvents)survivor;
 
                 survivorEvs.survivorDiedEventHandler += OnSurvivorDiedEventHandler;
                 survivorEvs.survivorAddedEquipmentEventHandler += OnSurvivorAddedEquipmentEventHandler;
@@ -144,7 +114,7 @@ namespace Zombies.Domain
 
             private void UnsubscribeFromSurvivorEvents(string survivorName)
             {
-                if (trackedSurvivors.SingleOrDefault(x => x.Name == survivorName) is ISurvivorEvents maybeSurvivor)
+                if (trackedSurvivors.SingleOrDefault(x => x.Name == survivorName) is ISurvivorHistoryTrackingEvents maybeSurvivor)
                 {
                     maybeSurvivor.survivorDiedEventHandler -= OnSurvivorDiedEventHandler;
                     maybeSurvivor.survivorAddedEquipmentEventHandler -= OnSurvivorAddedEquipmentEventHandler;
@@ -153,7 +123,7 @@ namespace Zombies.Domain
                 }
             }
 
-            private void SubscribeToGameEvents(IGameEvents game)
+            private void SubscribeToGameEvents(IGameHistoryTrackingEvents game)
             {
                 game.survivorJoinedTheGameEventHandler += OnSurvivorJoinedTheGameEventHandler;
                 game.gameEndedEventHandler += OnGameEndedEventHandler;
@@ -171,13 +141,13 @@ namespace Zombies.Domain
                 RecordIncident("A new game has started");
             }
 
-            private void OnGameEndedEventHandler(IGameEvents game, Level gameLevel)
+            private void OnGameEndedEventHandler(IGameHistoryTrackingEvents game, Level gameLevel)
             {
                 RecordIncident($"The Game has Ended. All survivors have died... Max level reached: {gameLevel}");
                 UnsusbcribeFromGameEvents(game);
             }
 
-            private void UnsusbcribeFromGameEvents(IGameEvents game)
+            private void UnsusbcribeFromGameEvents(IGameHistoryTrackingEvents game)
             {
                 game.survivorJoinedTheGameEventHandler -= OnSurvivorJoinedTheGameEventHandler;
                 game.gameEndedEventHandler -= OnGameEndedEventHandler;

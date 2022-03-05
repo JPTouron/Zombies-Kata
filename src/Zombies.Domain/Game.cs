@@ -4,13 +4,10 @@ using System.Linq;
 
 namespace Zombies.Domain
 {
-    public interface ISurvivorName
+    public interface IPlayingSurvivor
     {
         string Name { get; }
-    }
 
-    public interface IPlayingSurvivor : ISurvivorName
-    {
         bool IsAlive { get; }
 
         bool IsDead { get; }
@@ -18,20 +15,35 @@ namespace Zombies.Domain
         Level Level { get; }
     }
 
-    public partial class Game : IGameEvents
+    public interface IGameSurvivorTrackingEvents
+    {
+        event SurvivorDiedEventHandler survivorDiedEventHandler;
+
+        event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
+    }
+
+    public interface IGameHistoryTracker
+    {
+        IReadOnlyCollection<IRecordedIncident> RecordedIncidents { get; }
+
+        void TrackSurvivor(IPlayingSurvivor survivor);
+
+        void TrackGame(IGameHistoryTrackingEvents game);
+    }
+
+    public delegate void GameEndedEventHandler(IGameHistoryTrackingEvents game, Level gameLevel);
+
+    public delegate void GameStartedEventHandler();
+
+    public delegate void GameLeveledUpEventHandler(Level newLevel);
+
+    public partial class Game : IGameHistoryTrackingEvents
     {
         private readonly IGameHistoryTracker history;
+
         private IList<IPlayingSurvivor> survivors;
 
         private Level lastUpgradedLevel;
-
-        public Game(IGameHistoryTracker history)
-        {
-            survivors = new List<IPlayingSurvivor>();
-            this.history = history;
-            lastUpgradedLevel = Level;
-            TrackThisGameInHistoryAndRecordStart(history);
-        }
 
         public event SurvivorJoinedTheGameEventHandler survivorJoinedTheGameEventHandler;
 
@@ -40,6 +52,14 @@ namespace Zombies.Domain
         public event GameStartedEventHandler gameStartedEventHandler;
 
         public event GameLeveledUpEventHandler gameLeveledUpEventHandler;
+
+        public Game(IGameHistoryTracker history)
+        {
+            survivors = new List<IPlayingSurvivor>();
+            this.history = history;
+            lastUpgradedLevel = Level;
+            TrackThisGameInHistoryAndRecordStart(history);
+        }
 
         public int PlayingSurvivors => survivors.Count;
 
@@ -73,20 +93,20 @@ namespace Zombies.Domain
             gameStartedEventHandler?.Invoke();
         }
 
-        private void TrackSurvivorHistoryAndRecordSurvivorAddedGame(IPlayingSurvivor s)
+        private void TrackSurvivorHistoryAndRecordSurvivorAddedGame(IPlayingSurvivor survivor)
         {
-            history.TrackSurvivor(s);
-            survivorJoinedTheGameEventHandler?.Invoke(s.Name);
+            history.TrackSurvivor(survivor);
+            survivorJoinedTheGameEventHandler?.Invoke(survivor.Name);
 
-            SubscribeToSurvivorEvents(s);
+            SubscribeToSurvivorEvents(survivor);
         }
 
-        private void SubscribeToSurvivorEvents(IPlayingSurvivor s)
+        private void SubscribeToSurvivorEvents(IPlayingSurvivor survivor)
         {
-            var ss = (ISurvivorBasicEvents)s;
+            var survivorEvents = (IGameSurvivorTrackingEvents)survivor;
 
-            ss.survivorDiedEventHandler += OnSurvivorDiedEventHandler;
-            ss.survivorHasLeveledUpEventHandler += OnSurvivorHasLeveledUpEventHandler;
+            survivorEvents.survivorDiedEventHandler += OnSurvivorDiedEventHandler;
+            survivorEvents.survivorHasLeveledUpEventHandler += OnSurvivorHasLeveledUpEventHandler;
         }
 
         private void OnSurvivorHasLeveledUpEventHandler(string survivorName, Level newSurvivorLevel)
@@ -108,7 +128,7 @@ namespace Zombies.Domain
 
         private void UnsubscribeFromSurvivorEvents(string survivorName)
         {
-            if (survivors.SingleOrDefault(x => x.Name == survivorName) is ISurvivorBasicEvents maybeSurvivor)
+            if (survivors.SingleOrDefault(x => x.Name == survivorName) is IGameSurvivorTrackingEvents maybeSurvivor)
             {
                 maybeSurvivor.survivorDiedEventHandler -= OnSurvivorDiedEventHandler;
                 maybeSurvivor.survivorHasLeveledUpEventHandler -= OnSurvivorHasLeveledUpEventHandler;
