@@ -4,6 +4,10 @@ using Xunit;
 
 namespace Zombies.Domain.Tests
 {
+
+
+
+
     public class SurvivorShould
     {
         [Theory]
@@ -124,13 +128,19 @@ namespace Zombies.Domain.Tests
         }
 
         [Fact]
-        public void BeCreatedWithASkillTree()
+        public void BeCreatedWithASkillTreeWithOnlyPotentialSkills()
         {
-            var survivorWithEmptySkills = SurvivorProvider.CreateRandomSurvivor();
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            Assert.NotNull(survivorWithEmptySkills.UnlockedSkills);
-            Assert.Empty(survivorWithEmptySkills.UnlockedSkills);
+            Assert.Empty(survivor.UnlockedSkills);
+            Assert.NotEmpty(survivor.PotentialSkills);
+
+
+
+
         }
+
+
 
         [Theory]
         [InlineData(5)]
@@ -232,7 +242,7 @@ namespace Zombies.Domain.Tests
 
             survivor.LevelUpSurvivorTo(Level.Yellow);
 
-            Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x, "+1 Action", StringComparison.InvariantCultureIgnoreCase) == 0);
+            Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x.Name, "+1 Action", StringComparison.InvariantCultureIgnoreCase) == 0);
         }
 
         [Theory]

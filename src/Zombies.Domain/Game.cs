@@ -8,7 +8,11 @@ namespace Zombies.Domain
     {
         Level Level { get; }
 
-        IReadOnlyCollection<string> UnlockedSkills { get; }
+        IReadOnlyCollection<Skill> UnlockedSkills { get; }
+
+        IReadOnlyCollection<Skill> PotentialSkills { get; }
+
+        int Experience { get; }
     }
 
     public interface IPlayingSurvivor : ISkilledSurvivor

@@ -4,9 +4,7 @@ namespace Zombies.Domain
 {
     public interface ISkillTree
     {
-        IReadOnlyCollection<string> UnlockedSkills();
-
-        IReadOnlyCollection<string> PotentialSkills();
+        IReadOnlyCollection<Skill> Skills();
     }
 
     public class SkillTreeFactory
@@ -17,27 +15,63 @@ namespace Zombies.Domain
         }
     }
 
+    public class Skill
+    {
+        private readonly ISkilledSurvivor survivor;
+        private bool isUnlocked;
+
+        public Skill(ISkilledSurvivor survivor, string name, int experiencePoinsToUnlock)
+        {
+            this.survivor = survivor;
+            Name = name;
+            ExperiencePoinsToUnlock = experiencePoinsToUnlock;
+            isUnlocked = false;
+        }
+
+        public string Name { get; }
+
+        public int ExperiencePoinsToUnlock { get; }
+
+        public Level UnlocksAtLevel => ExperiencePoinsToUnlock switch
+        {
+            >= 0 and <= 5 => Level.Blue,
+            >= 6 and <= 17 => Level.Yellow,
+            >= 18 and <= 41 => Level.Orange,
+            _ => Level.Red    // default value
+        };
+
+        public bool IsAvailable => survivor.Experience >= ExperiencePoinsToUnlock;
+
+        public bool IsUnavailable => IsAvailable == false;
+
+        public bool IsUnlocked => isUnlocked;
+
+        public void UnlockSkill()
+        {
+            if (IsAvailable)
+                isUnlocked = true;
+        }
+    }
+
     public class SkillTree : ISkillTree
     {
         private readonly ISkilledSurvivor survivor;
+        private IList<Skill> skills;
 
         public SkillTree(ISkilledSurvivor survivor)
         {
             this.survivor = survivor;
+            CreateSkillsTree(survivor);
         }
 
-        public IReadOnlyCollection<string> PotentialSkills()
-        {
-            throw new System.NotImplementedException();
-        }
+        public IReadOnlyCollection<Skill> Skills() => (IReadOnlyCollection<Skill>)skills;
 
-        public IReadOnlyCollection<string> UnlockedSkills()
+        private void CreateSkillsTree(ISkilledSurvivor survivor)
         {
-            if (survivor.Level == Level.Yellow)
-            {
-                return new List<string> { "+1 Action" };
-            }
-            return new List<string>();
+            skills = new List<Skill> {
+                new Skill(survivor,"+1 Action", 6),
+                new Skill(survivor,"+1 Die (Ranged)", 18),
+        };
         }
     }
 }

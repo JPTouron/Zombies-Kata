@@ -82,10 +82,10 @@ The Game includes a running history of events that have taken place as it has be
 As the Game proceeds, Survivors get better.
 
 - [x] A set of potential **Skills** and the Levels where they are unlocked is called a **Skill Tree**.
-- [] Each Survivor begins with a Skill Tree.
+- [x] Each Survivor begins with a Skill Tree.
 	- [x] A Skill Tree consists of *potential* skills and *unlocked* skills.
-	- [] A Skill Tree begins with 1 *potential* skill at level Yellow, 2 at Orange, and 3 at Red.
-	- [] All Skill Trees have the same Yellow skill: "+1 Action".
+	- [x] A Skill Tree begins with 1 *potential* skill at level Yellow, 2 at Orange, and 3 at Red.
+	- [x] All Skill Trees have the same Yellow skill: "+1 Action".
 	- [x] Each Survivor can have a Skill Tree unique to themselves.
 - [x] When a Survivor first advances to a particular level they may unlock one available skill from that level.
 	- [x] At level Yellow, only the "+1 Action" skill should ever be available, so it will be unlocked.

@@ -1,5 +1,6 @@
 ﻿using Ardalis.GuardClauses;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Zombies.Domain
 {
@@ -92,7 +93,9 @@ namespace Zombies.Domain
             _ => Level.Red    // default value
         };
 
-        public IReadOnlyCollection<string> UnlockedSkills => skillTree.UnlockedSkills();
+        public IReadOnlyCollection<Skill> UnlockedSkills => skillTree.Skills().Where(x => x.IsUnlocked).ToList();
+
+        public IReadOnlyCollection<Skill> PotentialSkills => skillTree.Skills().Where(x => x.IsUnavailable).ToList();
 
         public void Attack(IZombieUnderAttack z)
         {
@@ -149,8 +152,10 @@ namespace Zombies.Domain
                 lastLevelObtained = Level;
                 survivorHasLeveledUpEventHandler?.Invoke(Name, Level);
 
-                if (Level == Level.Yellow)
+                if (Level == Level.Yellow) {
+                    skillTree.Skills().Where(x => x.UnlocksAtLevel == Level).Single().UnlockSkill();
                     availableActionsInTurn++;
+                }
             }
         }
     }
