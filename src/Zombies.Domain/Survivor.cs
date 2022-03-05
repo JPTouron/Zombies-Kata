@@ -12,6 +12,9 @@ namespace Zombies.Domain
         void Wound(IKillingSurvivor killingSurvivor);
     }
 
+    public interface ISurvivor : IPlayingSurvivor, IKillingSurvivor, ISurvivorHistoryTrackingEvents
+    { }
+
     public delegate void SurvivorAddedEquipmentEventHandler(string survivorName, string addedEquipment);
 
     public delegate void SurvivorDiedEventHandler(string survivorName);
@@ -30,13 +33,15 @@ namespace Zombies.Domain
         Red
     }
 
-    public class Survivor : IPlayingSurvivor, IKillingSurvivor, ISurvivorHistoryTrackingEvents
+    public class Survivor : ISurvivor
     {
         private IList<string> equipmentInHand;
 
         private IList<string> equipmentInReserve;
 
         private Level lastLevelObtained;
+
+        private ISkillTree skillTree;
 
         public event SurvivorAddedEquipmentEventHandler survivorAddedEquipmentEventHandler;
 
@@ -55,7 +60,7 @@ namespace Zombies.Domain
             Experience = 0;
             AvailableActionsInTurn = 3;
             lastLevelObtained = Level;
-            Skills = new SkillTree();
+            skillTree = new SkillTree();
             equipmentInHand = new List<string>();
             equipmentInReserve = new List<string>();
         }
@@ -64,7 +69,7 @@ namespace Zombies.Domain
         {
             Guard.Against.Null(skillTree, nameof(skillTree));
 
-            Skills = skillTree;
+            skillTree = skillTree;
         }
 
         public string Name { get; }
@@ -91,7 +96,7 @@ namespace Zombies.Domain
             _ => Level.Red    // default value
         };
 
-        public ISkillTree Skills { get; }
+        public IReadOnlyCollection<string> UnlockedSkills => skillTree.UnlockedSkills(this);
 
         public static Survivor CreateWithEmptySkillTree(string name)
         {

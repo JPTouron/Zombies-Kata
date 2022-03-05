@@ -132,8 +132,11 @@ namespace Zombies.Domain.Tests
             var skillTree = new SkillTree();
             var survivorWithLoadedSkills = Survivor.CreateWithSkillTree(name, skillTree);
 
-            Assert.NotNull(survivorWithEmptySkills.Skills);
-            Assert.NotNull(survivorWithLoadedSkills.Skills);
+            Assert.NotNull(survivorWithEmptySkills.UnlockedSkills);
+            Assert.NotNull(survivorWithLoadedSkills.UnlockedSkills);
+
+            Assert.Empty(survivorWithEmptySkills.UnlockedSkills);
+            Assert.Empty(survivorWithLoadedSkills.UnlockedSkills);
         }
 
         [Theory]
@@ -227,6 +230,16 @@ namespace Zombies.Domain.Tests
 
             Assert.Equal(shouldBeAlive, survivor.IsAlive);
             Assert.Equal(shouldBeAlive == false, survivor.IsDead);
+        }
+
+        [Fact]
+        public void HaveAnAvailableSkillForAnExtraActionWhenReachingYellowLevel()
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            survivor.LevelUpSurvivorTo(Level.Yellow);
+
+            Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x, "Action +1", StringComparison.InvariantCultureIgnoreCase) == 0);
         }
     }
 }

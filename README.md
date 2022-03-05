@@ -78,8 +78,8 @@ As the Game proceeds, Survivors get better.
 	- [] A Skill Tree begins with 1 *potential* skill at level Yellow, 2 at Orange, and 3 at Red.
 	- [] All Skill Trees have the same Yellow skill: "+1 Action".
 	- [x] Each Survivor can have a Skill Tree unique to themselves.
-- [o] When a Survivor first advances to a particular level they may unlock one available skill from that level.
-	- [o] At level Yellow, only the "+1 Action" skill should ever be available, so it will be unlocked.
+- [x] When a Survivor first advances to a particular level they may unlock one available skill from that level.
+	- [x] At level Yellow, only the "+1 Action" skill should ever be available, so it will be unlocked.
 - [] A Survivor who has "+1 Action" should have one additional Action (a total of 4).
 - [] Additional Skills: "+1 Die (Ranged)", "+1 Die (Melee)", "+1 Free Move Action", "Hoard", "Sniper", "Tough".
 	- [] A Survivor who has unlocked the "Hoard" skill can carry one additional piece of Equipment.

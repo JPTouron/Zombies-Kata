@@ -4,17 +4,20 @@ using System.Linq;
 
 namespace Zombies.Domain
 {
-    public interface ISkilledSurvivor { 
+    public interface ISkilledSurvivor
+    {
         Level Level { get; }
+
+        IReadOnlyCollection<string> UnlockedSkills { get; }
     }
-    public interface IPlayingSurvivor: ISkilledSurvivor
+
+    public interface IPlayingSurvivor : ISkilledSurvivor
     {
         string Name { get; }
 
         bool IsAlive { get; }
 
         bool IsDead { get; }
-
     }
 
     public interface IGameSurvivorTrackingEvents

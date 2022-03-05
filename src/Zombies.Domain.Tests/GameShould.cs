@@ -110,7 +110,7 @@ namespace Zombies.Domain.Tests
 
             var survivor = SurvivorProvider.CreateRandomSurvivor();
             game.AddSurvivor(survivor);
-            KillSurvivor(survivor);
+            survivor.KillSurvivor();
 
             Assert.Equal(now, game.History.Last().IncidentDate);
             Assert.Contains(game.History, x => x.Incident == $"Survivor {survivor.Name} has died!");
@@ -126,7 +126,7 @@ namespace Zombies.Domain.Tests
             game.AddSurvivor(survivor);
 
             var expectedSurvivorLevel = Level.Yellow;
-            LevelUpSurvivorTo(expectedSurvivorLevel, survivor);
+            survivor.LevelUpSurvivorTo(expectedSurvivorLevel);
 
             Assert.Equal(now, game.History.Last().IncidentDate);
             Assert.Contains(game.History, x => x.Incident == $"Survivor {survivor.Name} LeveledUp to level: {expectedSurvivorLevel}!");
@@ -144,11 +144,12 @@ namespace Zombies.Domain.Tests
             var s2 = SurvivorProvider.CreateRandomSurvivor();
             game.AddSurvivor(s2);
 
-            LevelUpSurvivorTo(expectedGameLevel, s1);
-            LevelUpSurvivorTo(Level.Yellow, s1);
+            s1.LevelUpSurvivorTo(expectedGameLevel);
+            s2.LevelUpSurvivorTo(Level.Yellow);
 
             Assert.Equal(now, game.History.Last().IncidentDate);
-            Assert.Equal($"The Game has LeveledUp to level: {expectedGameLevel}!", game.History.Last().Incident);
+            Assert.Equal(s1.Level, game.Level);
+            Assert.Contains(game.History, x => x.Incident == $"The Game has LeveledUp to level: {expectedGameLevel}!");
         }
 
         [Fact]
@@ -163,8 +164,8 @@ namespace Zombies.Domain.Tests
             var s2 = SurvivorProvider.CreateRandomSurvivor("s2");
             game.AddSurvivor(s2);
 
-            KillSurvivor(s1);
-            KillSurvivor(s2);
+            s1.KillSurvivor();
+            s2.KillSurvivor();
 
             Assert.Equal(now, game.History.Last().IncidentDate);
             Assert.Equal($"The Game has Ended. All survivors have died... Max level reached: {game.Level}", game.History.Last().Incident);
@@ -189,7 +190,7 @@ namespace Zombies.Domain.Tests
             var survivors = GameProvider.AddSurvivorsToAGame(game, survivorsToAdd);
 
             foreach (var survivor in survivors)
-                KillSurvivor(survivor);
+                survivor.KillSurvivor();
 
             Assert.True(game.HasEnded);
         }
@@ -206,30 +207,10 @@ namespace Zombies.Domain.Tests
 
             var survivor = survivors.ToList().ElementAt(2);
 
-            LevelUpSurvivorTo(maxLevelToGainByASurvivor, survivor);
+            survivor.LevelUpSurvivorTo(maxLevelToGainByASurvivor);
 
             Assert.Equal(survivor.Level, game.Level);
             Assert.Equal(maxLevelToGainByASurvivor, game.Level);
-        }
-
-        private static void LevelUpSurvivorTo(Level levelToGoTo, Survivor survivor)
-        {
-            while (survivor.Level < levelToGoTo)
-                KillAZombie(survivor);
-        }
-
-        private static void KillSurvivor(Survivor survivor)
-        {
-            while (survivor.IsAlive)
-                survivor.Wound();
-        }
-
-        private static void KillAZombie(Survivor survivor)
-        {
-            var zombie = new Zombie();
-
-            while (zombie.IsAlive)
-                survivor.Attack(zombie);
         }
     }
 }
