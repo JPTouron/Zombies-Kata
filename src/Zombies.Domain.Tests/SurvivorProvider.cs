@@ -9,8 +9,8 @@ namespace Zombies.Domain.Tests
             if (name == null)
                 name = new Fixture().Create<string>();
 
-            if (treeFactory==null)
-                treeFactory=new SkillTreeFactory();
+            if (treeFactory == null)
+                treeFactory = new SkillTreeFactory();
 
             var s = new Survivor(name, treeFactory);
             return s;
@@ -22,6 +22,12 @@ namespace Zombies.Domain.Tests
         public static void LevelUpSurvivorTo(this Survivor survivor, Level levelToGoTo)
         {
             while (survivor.Level < levelToGoTo)
+                KillAZombie(survivor);
+        }
+
+        public static void LevelUpSurvivorTo(this Survivor survivor, int experiencePoints)
+        {
+            while (survivor.Experience < experiencePoints)
                 KillAZombie(survivor);
         }
 

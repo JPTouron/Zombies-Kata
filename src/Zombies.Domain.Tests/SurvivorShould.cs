@@ -4,10 +4,6 @@ using Xunit;
 
 namespace Zombies.Domain.Tests
 {
-
-
-
-
     public class SurvivorShould
     {
         [Theory]
@@ -134,13 +130,7 @@ namespace Zombies.Domain.Tests
 
             Assert.Empty(survivor.UnlockedSkills);
             Assert.NotEmpty(survivor.PotentialSkills);
-
-
-
-
         }
-
-
 
         [Theory]
         [InlineData(5)]
@@ -235,14 +225,52 @@ namespace Zombies.Domain.Tests
             Assert.Equal(shouldBeAlive == false, survivor.IsDead);
         }
 
+        [Theory]
+        [InlineData(0, Level.Blue)]
+        [InlineData(6, Level.Yellow)]
+        [InlineData(18, Level.Orange)]
+        [InlineData(42, Level.Red)]
+        [InlineData(61, Level.Red)]
+        [InlineData(86, Level.Red)]
+        [InlineData(129, Level.Red)]
+        public void KeepLevelRedWhileStillGaininigExperiencePoints(int experiencePointsReached, Level expectedSurvivorLevel)
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            survivor.LevelUpSurvivorTo(experiencePointsReached);
+
+            Assert.Equal(expectedSurvivorLevel, survivor.Level);
+        }
+
         [Fact]
-        public void HaveAnAvailableSkillForAnExtraActionWhenReachingYellowLevel()
+        public void HaveAutomaticallyUnlockAnExtraActionSkillWhenReachingYellowLevel()
         {
             var survivor = SurvivorProvider.CreateRandomSurvivor();
 
             survivor.LevelUpSurvivorTo(Level.Yellow);
 
             Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x.Name, "+1 Action", StringComparison.InvariantCultureIgnoreCase) == 0);
+        }
+
+        [Theory]
+        [InlineData(6, "+1 Action")]
+        [InlineData(18, "+1 Die (Ranged)")]
+        [InlineData(42, "+1 Die (Melee)")]
+        [InlineData(61, "+1 Free Move Action")]
+        [InlineData(86, "Hoard")]
+        [InlineData(129, "Tough")]
+        public void HaveCertaingAvailableSkillsWhenReachingSpecificExperiencePoints(int experiencePointsReached, string expectedSkillAvailable)
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            survivor.LevelUpSurvivorTo(experiencePointsReached);
+
+            if (experiencePointsReached == 6)//this skill is auto-unlocked when reaching yellow level / 6 exp points
+                Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x.Name, expectedSkillAvailable, StringComparison.InvariantCultureIgnoreCase) == 0
+                                                           && x.IsAvailable);
+            else
+                Assert.Contains(survivor.PotentialSkills, x => string.Compare(x.Name, expectedSkillAvailable, StringComparison.InvariantCultureIgnoreCase) == 0
+                                                               && x.IsAvailable);
         }
 
         [Theory]

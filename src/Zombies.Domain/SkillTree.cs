@@ -46,6 +46,8 @@ namespace Zombies.Domain
 
         public bool IsUnlocked => isUnlocked;
 
+        public bool IsLocked => isUnlocked == false;
+
         public void UnlockSkill()
         {
             if (IsAvailable)
@@ -68,10 +70,13 @@ namespace Zombies.Domain
 
         private void CreateSkillsTree(ISkilledSurvivor survivor)
         {
-            skills = new List<Skill> {
-                new Skill(survivor,"+1 Action", 6),
-                new Skill(survivor,"+1 Die (Ranged)", 18),
-        };
+            skills = new List<Skill> {new Skill(survivor,"+1 Action", 6),
+                                      new Skill(survivor,"+1 Die (Ranged)", 18),
+                                      new Skill(survivor,"+1 Die (Melee)", 42),
+                                      new Skill(survivor,"+1 Free Move Action", 61),
+                                      new Skill(survivor,"Hoard", 82),
+                                      new Skill(survivor,"Tough", 129),
+                                     };
         }
     }
 }
