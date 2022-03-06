@@ -104,7 +104,7 @@ NOTE on skills concepts:
 	- [x] Upon reaching Yellow again (43 + 7 = 50 total), no more potential skills are available.
 	- [x] Upon reaching Orange again (43 + 18 = 61 total), a second Orange skills is unlocked.
 	- [x] Upon reaching Red again (43 + 43 = 86 total), a second Red skill is unlocked.
-- [] A Survivor can restart a second time, unlocking their last Red skill at (43 + 43 + 43 = 129 total) experience.
+- [x] A Survivor can restart a second time, unlocking their last Red skill at (43 + 43 + 43 = 129 total) experience.
 - [] The Game History notes that a Survivor has acquired a new Skill.
 
 ## Notes
