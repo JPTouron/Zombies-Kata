@@ -5,6 +5,10 @@ namespace Zombies.Domain
     public interface ISkillTree
     {
         IReadOnlyCollection<Skill> Skills();
+
+        //IReadOnlyCollection<Skill> UnlockedSkills { get; }
+
+        //IReadOnlyCollection<Skill> PotentialSkills { get; }
     }
 
     public class SkillTreeFactory
@@ -17,22 +21,24 @@ namespace Zombies.Domain
 
     public class Skill
     {
+        private const int autoUnlockableXPThreshold = 50;
+
         private readonly ISkilledSurvivor survivor;
         private bool isUnlocked;
 
-        public Skill(ISkilledSurvivor survivor, string name, int experiencePoinsToUnlock)
+        public Skill(ISkilledSurvivor survivor, string name, int experiencePoinsRequiredToUnlock)
         {
             this.survivor = survivor;
             Name = name;
-            ExperiencePoinsToUnlock = experiencePoinsToUnlock;
+            ExperiencePoinsRequiredToUnlock = experiencePoinsRequiredToUnlock;
             isUnlocked = false;
         }
 
         public string Name { get; }
 
-        public int ExperiencePoinsToUnlock { get; }
+        public int ExperiencePoinsRequiredToUnlock { get; }
 
-        public Level UnlocksAtLevel => ExperiencePoinsToUnlock switch
+        public Level UnlocksAtLevel => ExperiencePoinsRequiredToUnlock switch
         {
             >= 0 and <= 5 => Level.Blue,
             >= 6 and <= 17 => Level.Yellow,
@@ -40,13 +46,31 @@ namespace Zombies.Domain
             _ => Level.Red    // default value
         };
 
-        public bool IsAvailable => survivor.Experience >= ExperiencePoinsToUnlock;
+        public bool IsAvailable => survivor.Experience >= ExperiencePoinsRequiredToUnlock;
 
         public bool IsUnavailable => IsAvailable == false;
 
-        public bool IsUnlocked => isUnlocked;
+        //public bool IsUnlocked => isUnlocked;
+
+        public bool IsUnlocked
+        {
+            get
+            {
+                if (IsAvailable && IsAutoUnlockable)
+                    isUnlocked = true;
+
+                var result = this.isUnlocked;
+
+                return result;
+            }
+        }
 
         public bool IsLocked => isUnlocked == false;
+
+        public bool IsPotential => ExperiencePoinsRequiredToUnlock < autoUnlockableXPThreshold && IsUnlocked==false;
+
+        public bool IsAutoUnlockable => ExperiencePoinsRequiredToUnlock > autoUnlockableXPThreshold;
+
 
         public void UnlockSkill()
         {

@@ -92,10 +92,10 @@ As the Game proceeds, Survivors get better.
 - [x] A Survivor who has "+1 Action" should have one additional Action (a total of 4).
 - [x] Additional Skills: "+1 Die (Ranged)", "+1 Die (Melee)", "+1 Free Move Action", "Hoard", "Sniper", "Tough".
 	- [x] A Survivor who has unlocked the "Hoard" skill can carry one additional piece of Equipment.
-- [] When a Survivor advanced beyond 43 experience, they remain Level Red but restart through the skill tree a second time.
-	- [] Upon reaching Yellow again (43 + 7 = 50 total), no more potential skills are available.
-	- [] Upon reaching Orange again (43 + 18 = 61 total), a second Orange skills is unlocked.
-	- [] Upon reaching Red again (43 + 43 = 86 total), a second Red skill is unlocked.
+- [x] When a Survivor advanced beyond 43 experience, they remain Level Red but restart through the skill tree a second time.
+	- [x] Upon reaching Yellow again (43 + 7 = 50 total), no more potential skills are available.
+	- [x] Upon reaching Orange again (43 + 18 = 61 total), a second Orange skills is unlocked.
+	- [x] Upon reaching Red again (43 + 43 = 86 total), a second Red skill is unlocked.
 - [] A Survivor can restart a second time, unlocking their last Red skill at (43 + 43 + 43 = 129 total) experience.
 - [] The Game History notes that a Survivor has acquired a new Skill.
 

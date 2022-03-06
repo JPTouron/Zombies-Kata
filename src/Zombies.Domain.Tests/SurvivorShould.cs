@@ -254,24 +254,42 @@ namespace Zombies.Domain.Tests
         }
 
         [Theory]
-        [InlineData(6, "+1 Action")]
         [InlineData(18, "+1 Die (Ranged)")]
         [InlineData(42, "+1 Die (Melee)")]
-        [InlineData(61, "+1 Free Move Action")]
-        [InlineData(86, "Hoard")]
-        [InlineData(129, "Tough")]
-        public void HaveCertaingAvailableSkillsWhenReachingSpecificExperiencePoints(int experiencePointsReached, string expectedSkillAvailable)
+        public void HaveCertainAvailableSkillsWhenReachingSpecificExperiencePoints(int experiencePointsReached, string expectedSkillAvailable)
         {
             var survivor = SurvivorProvider.CreateRandomSurvivor();
 
             survivor.LevelUpSurvivorTo(experiencePointsReached);
 
-            if (experiencePointsReached == 6)//this skill is auto-unlocked when reaching yellow level / 6 exp points
-                Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x.Name, expectedSkillAvailable, StringComparison.InvariantCultureIgnoreCase) == 0
-                                                           && x.IsAvailable);
-            else
-                Assert.Contains(survivor.PotentialSkills, x => string.Compare(x.Name, expectedSkillAvailable, StringComparison.InvariantCultureIgnoreCase) == 0
+            Assert.Contains(survivor.PotentialSkills, x => string.Compare(x.Name, expectedSkillAvailable, StringComparison.InvariantCultureIgnoreCase) == 0
                                                                && x.IsAvailable);
+        }
+
+        [Theory]
+        [InlineData(6, "+1 Action")]
+        [InlineData(61, "+1 Free Move Action")]
+        [InlineData(86, "Hoard")]
+        [InlineData(129, "Tough")]
+        public void HaveCertainAutoUnlockedSkillsWhenReachingSpecificExperiencePoints(int experiencePointsReached, string expectedSkillAvailable)
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            survivor.LevelUpSurvivorTo(experiencePointsReached);
+
+            Assert.Contains(survivor.UnlockedSkills, x => string.Compare(x.Name, expectedSkillAvailable, StringComparison.InvariantCultureIgnoreCase) == 0
+                                                       && x.IsAvailable);
+        }
+
+        [Fact]
+        public void HaveNoMorePotentialSkillsWhenReaching50ExperiencePoints()
+        {
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            survivor.LevelUpSurvivorTo(50);
+            survivor.PotentialSkills.ToList().ForEach(x=>x.UnlockSkill());
+
+            Assert.Empty(survivor.PotentialSkills);
         }
 
         [Theory]
@@ -287,7 +305,6 @@ namespace Zombies.Domain.Tests
             Assert.Equal(4, survivor.AvailableActionsInTurn);
         }
 
-
         [Theory]
         [InlineData(6)]
         [InlineData(10)]
@@ -296,9 +313,7 @@ namespace Zombies.Domain.Tests
             var expectedMaxStoredEquipment = 6;
             var survivor = SurvivorProvider.CreateRandomSurvivor();
 
-            survivor.LevelUpSurvivorTo(86);
-
-            survivor.PotentialSkills.Single(x => x.Name == "Hoard").UnlockSkill();
+            survivor.LevelUpSurvivorTo(82);
 
             for (int i = 0; i < equipmentToAdd; i++)
             {
@@ -306,8 +321,8 @@ namespace Zombies.Domain.Tests
                 survivor.AddEquipment(e);
             }
 
+            Assert.Contains(survivor.UnlockedSkills, x => x.Name == "Hoard" && x.IsUnlocked);
             Assert.Equal(expectedMaxStoredEquipment, survivor.InHand + survivor.InReserve);
         }
     }
-
 }

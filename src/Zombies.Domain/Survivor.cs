@@ -95,7 +95,7 @@ namespace Zombies.Domain
 
         public IReadOnlyCollection<Skill> UnlockedSkills => skillTree.Skills().Where(x => x.IsUnlocked).ToList();
 
-        public IReadOnlyCollection<Skill> PotentialSkills => skillTree.Skills().Where(x => x.IsLocked).ToList();
+        public IReadOnlyCollection<Skill> PotentialSkills => skillTree.Skills().Where(x => x.IsPotential).ToList();
 
         public void Attack(IZombieUnderAttack z)
         {
