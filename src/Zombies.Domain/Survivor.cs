@@ -93,9 +93,9 @@ namespace Zombies.Domain
             _ => Level.Red    // default value
         };
 
-        public IReadOnlyCollection<Skill> UnlockedSkills => skillTree.Skills().Where(x => x.IsUnlocked).ToList();
+        public IReadOnlyCollection<BaseSkill> UnlockedSkills => skillTree.UnlockedSkills;
 
-        public IReadOnlyCollection<Skill> PotentialSkills => skillTree.Skills().Where(x => x.IsPotential).ToList();
+        public IReadOnlyCollection<BaseSkill> PotentialSkills => skillTree.PotentialSkills;
 
         public void Attack(IZombieUnderAttack z)
         {
@@ -164,7 +164,7 @@ namespace Zombies.Domain
 
                 if (Level == Level.Yellow)
                 {
-                    skillTree.Skills().Where(x => x.UnlocksAtLevel == Level).Single().UnlockSkill();
+                    //skillTree.Skills().Where(x => x.UnlocksAtLevel == Level).Single().UnlockSkill();
                     availableActionsInTurn++;
                 }
             }

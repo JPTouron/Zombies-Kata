@@ -8,9 +8,9 @@ namespace Zombies.Domain
     {
         Level Level { get; }
 
-        IReadOnlyCollection<Skill> UnlockedSkills { get; }
+        IReadOnlyCollection<BaseSkill> UnlockedSkills { get; }
 
-        IReadOnlyCollection<Skill> PotentialSkills { get; }
+        IReadOnlyCollection<BaseSkill> PotentialSkills { get; }
 
         int Experience { get; }
     }
