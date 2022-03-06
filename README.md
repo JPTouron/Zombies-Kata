@@ -81,6 +81,14 @@ The Game includes a running history of events that have taken place as it has be
 
 As the Game proceeds, Survivors get better.
 
+NOTE on skills concepts:
+- Potential skill: a skill that is available for the survivor to unlock at will after reaching a certain XP threshold
+- Available skill: a.k.a. Potential skill
+- Locked skill: a skill that is not yet available for the survivor to attain through any means
+- AutoUnlockable skill: a skill that is automatically unlocked once the survivor reaches a specific XP threshold, these skills are applied immediately after reaching the XP threshold (> 50 XPs)
+- Unlocked skill: a skill that is currently in use by a survivor, whether it has been unlocked willingly or auto-unlocked after reaching the XP threshold of 50 XPs
+
+
 - [x] A set of potential **Skills** and the Levels where they are unlocked is called a **Skill Tree**.
 - [x] Each Survivor begins with a Skill Tree.
 	- [x] A Skill Tree consists of *potential* skills and *unlocked* skills.
