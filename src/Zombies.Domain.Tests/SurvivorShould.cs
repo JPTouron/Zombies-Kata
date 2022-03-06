@@ -1,5 +1,6 @@
 ﻿using AutoFixture;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace Zombies.Domain.Tests
@@ -152,7 +153,7 @@ namespace Zombies.Domain.Tests
         [Theory]
         [InlineData("", typeof(ArgumentException))]
         [InlineData((string?)null, typeof(ArgumentNullException))]
-        public void OnlyAddEquipmentWhenNameIsNotNorrOrEmpty(string equipmentName, Type exceptionType)
+        public void OnlyAddEquipmentWhenNameIsNotNullOrEmpty(string equipmentName, Type exceptionType)
         {
             var survivor = SurvivorProvider.CreateRandomSurvivor();
 
@@ -285,5 +286,28 @@ namespace Zombies.Domain.Tests
 
             Assert.Equal(4, survivor.AvailableActionsInTurn);
         }
+
+
+        [Theory]
+        [InlineData(6)]
+        [InlineData(10)]
+        public void HaveUpToSixEquipmentItemsWhenHoardSkillIsUnlocked(int equipmentToAdd)
+        {
+            var expectedMaxStoredEquipment = 6;
+            var survivor = SurvivorProvider.CreateRandomSurvivor();
+
+            survivor.LevelUpSurvivorTo(86);
+
+            survivor.PotentialSkills.Single(x => x.Name == "Hoard").UnlockSkill();
+
+            for (int i = 0; i < equipmentToAdd; i++)
+            {
+                var e = new Fixture().Create<string>();
+                survivor.AddEquipment(e);
+            }
+
+            Assert.Equal(expectedMaxStoredEquipment, survivor.InHand + survivor.InReserve);
+        }
     }
+
 }

@@ -111,7 +111,11 @@ namespace Zombies.Domain
         {
             Guard.Against.NullOrEmpty(equipmentName, nameof(equipmentName));
 
-            if (InHand == 2 && InReserve < 3)
+            var maxReserveSize = 3;
+            if (HoardSkillIsUnlocked())
+                maxReserveSize = 4;
+
+            if (InHand == 2 && InReserve < maxReserveSize)
             {
                 equipmentInReserve.Add(equipmentName);
             }
@@ -122,6 +126,12 @@ namespace Zombies.Domain
             }
 
             survivorAddedEquipmentEventHandler?.Invoke(Name, equipmentName);
+        }
+
+        private bool HoardSkillIsUnlocked()
+        {
+            return UnlockedSkills.Any(x => x.Name == "Hoard");
+
         }
 
         public void Wound()
