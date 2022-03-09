@@ -87,7 +87,14 @@ namespace Zombies.Domain
                 survivorEvs.survivorAddedEquipmentEventHandler += OnSurvivorAddedEquipmentEventHandler;
                 survivorEvs.survivorWoundedEventHandler += OnSurvivorWoundedEventHandler;
                 survivorEvs.survivorHasLeveledUpEventHandler += OnSurvivorHasLeveledUpEventHandler;
+                survivorEvs.survivorHasUnlockedANewSkillEventHandler += OnSurvivorHasUnlockedANewSkillEventHandler;
+
                 trackedSurvivors.Add(survivorEvs);
+            }
+
+            private void OnSurvivorHasUnlockedANewSkillEventHandler(string survivorName, string skillName)
+            {
+                RecordIncident($"The Survivor {survivorName} has gained a new Skill: {skillName}!");
             }
 
             private void OnSurvivorHasLeveledUpEventHandler(string survivorName, Level newLevel)
@@ -120,6 +127,7 @@ namespace Zombies.Domain
                     maybeSurvivor.survivorAddedEquipmentEventHandler -= OnSurvivorAddedEquipmentEventHandler;
                     maybeSurvivor.survivorWoundedEventHandler -= OnSurvivorWoundedEventHandler;
                     maybeSurvivor.survivorHasLeveledUpEventHandler -= OnSurvivorHasLeveledUpEventHandler;
+                    maybeSurvivor.survivorHasUnlockedANewSkillEventHandler -= OnSurvivorHasUnlockedANewSkillEventHandler;
                 }
             }
 

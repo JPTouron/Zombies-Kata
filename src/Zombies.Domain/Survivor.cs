@@ -16,6 +16,17 @@ namespace Zombies.Domain
     public interface ISurvivor : IPlayingSurvivor, IKillingSurvivor, ISurvivorHistoryTrackingEvents
     { }
 
+    public interface IExistingSkill
+    {
+        event SkillWasUnlockedEventHandler skillWasUnlockedEventHandler;
+
+        int ExperiencePoinsRequiredToUnlock { get; }
+
+        string Name { get; }
+
+        bool IsUnlocked { get; }
+    }
+
     public delegate void SurvivorAddedEquipmentEventHandler(string survivorName, string addedEquipment);
 
     public delegate void SurvivorDiedEventHandler(string survivorName);
@@ -23,6 +34,8 @@ namespace Zombies.Domain
     public delegate void SurvivorWoundedEventHandler(string survivorName);
 
     public delegate void SurvivorHasLeveledUpEventHandler(string survivorName, Level newLevel);
+
+    public delegate void SurvivorHasUnlockedANewSkillEventHandler(string survivorName, string skillName);
 
     public delegate void SurvivorJoinedTheGameEventHandler(string survivorName);
 
@@ -54,6 +67,8 @@ namespace Zombies.Domain
 
         public event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
 
+        public event SurvivorHasUnlockedANewSkillEventHandler survivorHasUnlockedANewSkillEventHandler;
+
         public Survivor(string name, SkillTreeFactory skillTree)
         {
             Guard.Against.NullOrEmpty(name, nameof(name));
@@ -64,7 +79,7 @@ namespace Zombies.Domain
             Experience = 0;
             availableActionsInTurn = 3;
             lastLevelObtained = Level;
-            this.skillTree = skillTree.Create(this);
+            CreateSkillTree(skillTree);
             equipmentInHand = new List<string>();
             equipmentInReserve = new List<string>();
         }
@@ -101,10 +116,13 @@ namespace Zombies.Domain
         {
             z.Wound(this);
 
-            if (z.IsDead == false)
+            if (z.IsDead == true)
+            {
                 Experience++;
 
-            LevelUpSurvivorIfEnoughExperiencePointsReached();
+                LevelUpSurvivorIfEnoughExperiencePointsReached();
+                RecordHistoryIfNewSkillWasUnlocked();
+            }
         }
 
         public void AddEquipment(string equipmentName)
@@ -128,12 +146,6 @@ namespace Zombies.Domain
             survivorAddedEquipmentEventHandler?.Invoke(Name, equipmentName);
         }
 
-        private bool HoardSkillIsUnlocked()
-        {
-            return UnlockedSkills.Any(x => x.Name == "Hoard");
-
-        }
-
         public void Wound()
         {
             Wounds++;
@@ -151,7 +163,48 @@ namespace Zombies.Domain
             }
 
             if (IsDead && survivorDiedEventHandler != null)
-                survivorDiedEventHandler(Name);
+                FireDeadEventAndUnsubscribeFromSkillEvents();
+        }
+
+        private void CreateSkillTree(SkillTreeFactory skillTree)
+        {
+            this.skillTree = skillTree.Create(this);
+            SubscribeToSkillEvents();
+        }
+
+        private void SubscribeToSkillEvents()
+        {
+            skillTree.AllSkills.ToList().ForEach(x => x.skillWasUnlockedEventHandler += OnSkillWasUnlockedEventHandler);
+        }
+
+        private void UnSubscribeFromSkillEvents()
+        {
+            skillTree.AllSkills.ToList().ForEach(x => x.skillWasUnlockedEventHandler -= OnSkillWasUnlockedEventHandler);
+        }
+
+        private void OnSkillWasUnlockedEventHandler(string skillName)
+        {
+            survivorHasUnlockedANewSkillEventHandler?.Invoke(Name, skillName);
+        }
+
+        private void FireDeadEventAndUnsubscribeFromSkillEvents()
+        {
+            survivorDiedEventHandler(Name);
+
+            UnSubscribeFromSkillEvents();
+        }
+
+        private void RecordHistoryIfNewSkillWasUnlocked()
+        {
+            var maybeSkillUnlocked = skillTree.AllSkills.SingleOrDefault(x => x.ExperiencePoinsRequiredToUnlock == Experience && x.IsUnlocked);
+
+            if (maybeSkillUnlocked != null)
+                survivorHasUnlockedANewSkillEventHandler?.Invoke(Name, maybeSkillUnlocked.Name);
+        }
+
+        private bool HoardSkillIsUnlocked()
+        {
+            return UnlockedSkills.Any(x => x.Name == "Hoard");
         }
 
         private void LevelUpSurvivorIfEnoughExperiencePointsReached()
@@ -163,10 +216,7 @@ namespace Zombies.Domain
                 survivorHasLeveledUpEventHandler?.Invoke(Name, Level);
 
                 if (Level == Level.Yellow)
-                {
-                    //skillTree.Skills().Where(x => x.UnlocksAtLevel == Level).Single().UnlockSkill();
                     availableActionsInTurn++;
-                }
             }
         }
     }

@@ -29,6 +29,8 @@ namespace Zombies.Domain
         event SurvivorDiedEventHandler survivorDiedEventHandler;
 
         event SurvivorHasLeveledUpEventHandler survivorHasLeveledUpEventHandler;
+
+        event SurvivorHasUnlockedANewSkillEventHandler survivorHasUnlockedANewSkillEventHandler;
     }
 
     public interface IGameHistoryTracker

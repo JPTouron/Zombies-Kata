@@ -171,6 +171,46 @@ namespace Zombies.Domain.Tests
             Assert.Equal($"The Game has Ended. All survivors have died... Max level reached: {game.Level}", game.History.Last().Incident);
         }
 
+        [Theory]
+        [InlineData(6, "+1 Action")]
+        [InlineData(18, "+1 Die (Ranged)", true)]
+        [InlineData(42, "+1 Die (Melee)", true)]
+        [InlineData(61, "+1 Free Move Action")]
+        [InlineData(82, "Hoard")]
+        [InlineData(129, "Tough")]
+        public void RecordASurvivorHasGainedANewSkillInTheHistory(int experiencePointsToUnlockSkill, string skillNameGained, bool isSkillOptionallyUnlocked = false)
+        {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
+            var s1 = SurvivorProvider.CreateRandomSurvivor("s1");
+            game.AddSurvivor(s1);
+
+            s1.LevelUpSurvivorTo(experiencePointsToUnlockSkill);
+            if (isSkillOptionallyUnlocked)
+                s1.PotentialSkills.Where(x => x.Name == skillNameGained).Single().Unlock();
+
+            Assert.Contains(game.History, x => x.Incident == $"The Survivor {s1.Name} has gained a new Skill: {skillNameGained}!");
+        }
+
+        [Theory]
+        [InlineData(6, "+1 Action")]
+        [InlineData(18, "+1 Die (Ranged)")]
+        public void RecordASingleEventOfSkillUnlockRegardlessOfUnlockingSkillTimes(int experiencePointsToUnlockSkill, string skillNameGained)
+        {
+            var now = DateTime.UtcNow;
+            clock.SetupGet(x => x.Now).Returns(now);
+
+            var s1 = SurvivorProvider.CreateRandomSurvivor("s1");
+            game.AddSurvivor(s1);
+
+            s1.LevelUpSurvivorTo(experiencePointsToUnlockSkill);
+            s1.PotentialSkills.Where(x => x.Name == skillNameGained).SingleOrDefault()?.Unlock();
+            s1.UnlockedSkills.Where(x => x.Name == skillNameGained).Single().Unlock();
+
+            Assert.Single(game.History, x => x.Incident == $"The Survivor {s1.Name} has gained a new Skill: {skillNameGained}!");
+        }
+
         [Fact]
         public void ThrowWhenAddedSurvivorNameIsNotUnique()
         {

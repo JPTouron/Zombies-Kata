@@ -287,7 +287,7 @@ namespace Zombies.Domain.Tests
             var survivor = SurvivorProvider.CreateRandomSurvivor();
 
             survivor.LevelUpSurvivorTo(50);
-            survivor.PotentialSkills.ToList().ForEach(x=>x.UnlockSkill());
+            survivor.PotentialSkills.ToList().ForEach(x => x.Unlock());
 
             Assert.Empty(survivor.PotentialSkills);
         }

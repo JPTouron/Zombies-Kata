@@ -9,26 +9,11 @@ namespace Zombies.Domain
         IReadOnlyCollection<BaseSkill> UnlockedSkills { get; }
 
         IReadOnlyCollection<BaseSkill> PotentialSkills { get; }
+
+        IReadOnlyCollection<IExistingSkill> AllSkills { get; }
     }
 
-    public interface IBaseSkill
-    {
-        int ExperiencePoinsRequiredToUnlock { get; }
-
-        bool IsAutoUnlockable { get; }
-
-        bool IsAvailable { get; }
-
-        bool IsPotential { get; }
-
-        bool IsUnlocked { get; }
-
-        string Name { get; }
-
-        Level UnlocksAtLevel { get; }
-
-        void UnlockSkill();
-    }
+    public delegate void SkillWasUnlockedEventHandler(string skillName);
 
     public class SkillTreeFactory
     {
@@ -38,10 +23,12 @@ namespace Zombies.Domain
         }
     }
 
-    public abstract class BaseSkill : IBaseSkill
+    public abstract class BaseSkill : IExistingSkill
     {
         protected readonly ISkilledSurvivor survivor;
         protected bool isUnlocked;
+
+        public event SkillWasUnlockedEventHandler skillWasUnlockedEventHandler;
 
         protected BaseSkill(ISkilledSurvivor survivor, string name, int experiencePoinsRequiredToUnlock)
         {
@@ -77,10 +64,13 @@ namespace Zombies.Domain
 
         public abstract bool IsAutoUnlockable { get; }
 
-        public void UnlockSkill()
+        public void Unlock()
         {
-            if (IsAvailable)
+            if (IsAvailable && IsUnlocked == false)
+            {
                 isUnlocked = true;
+                skillWasUnlockedEventHandler?.Invoke(Name);
+            }
         }
     }
 
@@ -128,18 +118,18 @@ namespace Zombies.Domain
 
     public class SkillTree : ISkillTree
     {
-        private readonly ISkilledSurvivor survivor;
         private IList<BaseSkill> skills;
 
         public SkillTree(ISkilledSurvivor survivor)
         {
-            this.survivor = survivor;
             CreateSkillsTree(survivor);
         }
 
-        public IReadOnlyCollection<BaseSkill> UnlockedSkills => (IReadOnlyCollection<BaseSkill>)skills.Where(x => x.IsUnlocked).ToList();
+        public IReadOnlyCollection<BaseSkill> UnlockedSkills => skills.Where(x => x.IsUnlocked).ToList();
 
-        public IReadOnlyCollection<BaseSkill> PotentialSkills => (IReadOnlyCollection<BaseSkill>)skills.OfType<PotentialSkill>().Where(x => x.IsLocked).ToList();
+        public IReadOnlyCollection<BaseSkill> PotentialSkills => skills.OfType<PotentialSkill>().Where(x => x.IsLocked).ToList();
+
+        public IReadOnlyCollection<IExistingSkill> AllSkills => (IReadOnlyCollection<IExistingSkill>)skills;
 
         private void CreateSkillsTree(ISkilledSurvivor survivor)
         {
