@@ -2,7 +2,18 @@ Zombie Survivor Kata
 ====================
 Source: [https://github.com/ardalis/kata-catalog](https://github.com/ardalis/kata-catalog)
 
-# Instructions #
+# What's different in this version?
+
+I'm gonna develop this, by taking it one step at a time AND apply: 
+- Object Calisthenics:
+>https://bolcom.github.io/student-dojo/legacy-code/DevelopersAnonymous-ObjectCalisthenics.pdf
+>https://developerhandbook.stakater.com/content/architecture/object-calisthenics.html
+- Experiment with Railway Oriented Programming:
+>https://www.youtube.com/watch?v=fYo3LN9Vf_M&list=PLNgRDf-MGkXs9vc9a6UPMZP9dyeQn7Lk6&index=1&pp=gAQBiAQB
+>https://www.netmentor.es/entrada/railway-oriented-programming
+
+
+# Instructions 
 
 This kata constructs a model for a zombie boardgame's survivors. If you enjoy the kata, you may find the Zombicide series of boardgames fun as well. Complete each step before reading ahead to the next one. Revise your design to react to new requirements as they appear.
 
