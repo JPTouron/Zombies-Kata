@@ -1,4 +1,6 @@
-﻿using Zombies.Domain.Equipment;
+﻿
+
+using Zombies.Domain.SurvivorModel.EquipmentModel;
 
 namespace Zombies.Domain;
 

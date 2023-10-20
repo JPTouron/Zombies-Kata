@@ -1,5 +1,13 @@
 ﻿namespace Zombies.Domain;
 
+public interface ILiteSurvivor
+{
+
+    string Name { get; }
+
+    bool IsDead { get; }
+}
+
 public interface ISurvivor
 {
     public enum SurvivorStatus
@@ -7,6 +15,7 @@ public interface ISurvivor
         Alive,
         Dead
     }
+
 
     string Name { get; }
 
@@ -29,7 +38,7 @@ public interface ISurvivor
     void AddInReserveEquipment(string equipmentName);
 }
 
-public partial class Survivor : ISurvivor
+public partial class Survivor : ISurvivor, ILiteSurvivor
 {
     private Equipment equipment;
 
@@ -57,6 +66,8 @@ public partial class Survivor : ISurvivor
     public IReadOnlyCollection<string> InReserveEquipment => equipment.InReserveEquipment;
 
     public int InReserveEquipmentCapacity => equipment.CurrentMaximumInReserveEquipmentSize;
+
+    public bool IsDead => Status == ISurvivor.SurvivorStatus.Dead;
 
     public static ISurvivor Create(string name)
     {
