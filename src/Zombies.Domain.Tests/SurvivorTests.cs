@@ -32,6 +32,8 @@ public class SurvivorTests
         var expectedStartingWounds = 0;
         var expectedStartingSurvivorStatus = ISurvivor.SurvivorStatus.Alive;
         var expectedStartingActionsPerTurn = 3;
+        var expectedStartingExperience = 0;
+        var expectedStartingLevel = ISurvivor.SurvivorLevel.Blue;
 
         var survivor = survivorProvider.CreateValid(expectedSurvivorName);
 
@@ -39,6 +41,8 @@ public class SurvivorTests
         Assert.Equal(expectedSurvivorName, survivor.Name);
         Assert.Equal(expectedStartingSurvivorStatus, survivor.Status);
         Assert.Equal(expectedStartingActionsPerTurn, survivor.RemainingActions);
+        Assert.Equal(expectedStartingExperience, survivor.Experience);
+        Assert.Equal(expectedStartingLevel, survivor.Level);
         Assert.Empty(survivor.InHandEquipment);
         Assert.Empty(survivor.InReserveEquipment);
     }
@@ -155,5 +159,36 @@ public class SurvivorTests
         survivor.InflictWound(woundsToInflict);
 
         Assert.Equal(expectedEquipmentCapacityAfterWound, survivor.InReserveEquipmentCapacity);
+    }
+
+    [Fact]
+    public void GivenAValidSurvivor_WhenZombieIsKilledByASurvivor_ThenSurvivorIncreasesExperienceByOnePoint()
+    {
+        var zombie = new Zombie();
+        var survivor = survivorProvider.CreateValid();
+        var expectedSurvivorExperience = 1;
+        while (zombie.IsAlive)
+            survivor.HitZombie(zombie);
+
+        Assert.True(zombie.IsDead);
+        Assert.Equal(expectedSurvivorExperience, survivor.Experience);
+    }
+
+    [Theory]
+    [InlineData(0, ISurvivor.SurvivorLevel.Blue)]
+    [InlineData(6, ISurvivor.SurvivorLevel.Yellow)]
+    [InlineData(18, ISurvivor.SurvivorLevel.Orange)]
+    [InlineData(42, ISurvivor.SurvivorLevel.Red)]
+    public void GivenAValidSurvivor_WhenAnExperienceThresholdIsGained_ThenALevelIsReached(int experienceToGain, ISurvivor.SurvivorLevel expectedLevelReached)
+    {
+        var survivor = survivorProvider.CreateValid();
+        while (survivor.Experience < experienceToGain)
+        {
+            var zombie = new Zombie();
+            while (zombie.IsAlive)
+                survivor.HitZombie(zombie);
+        }
+
+        Assert.Equal(expectedLevelReached, survivor.Level);
     }
 }

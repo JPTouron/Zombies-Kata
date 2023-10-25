@@ -73,4 +73,53 @@ public class GameTests
         Assert.True(survivor2.IsDead);
         Assert.Equal(expectedGameState, game.State);
     }
+
+    [Theory]
+    [InlineData(ISurvivor.SurvivorLevel.Blue, GameLevel.Blue)]
+    [InlineData(ISurvivor.SurvivorLevel.Yellow, GameLevel.Yellow)]
+    [InlineData(ISurvivor.SurvivorLevel.Orange, GameLevel.Orange)]
+    [InlineData(ISurvivor.SurvivorLevel.Red, GameLevel.Red)]
+    public void GivenAValidGame_WhenASurvivorIncreasesLevel_ThenGameHasSameLevelAsSurvivor(ISurvivor.SurvivorLevel survivorLevelIncrease, GameLevel expectedGameLevel)
+    {
+        var survivorName1 = "player1";
+
+        var game = Game.Start();
+        game.AddSurvivor(survivorName1);
+
+        var survivor1 = game.GetSurvivor(survivorName1);
+
+        while (survivor1.Level < survivorLevelIncrease)
+        {
+            var zombie = new Zombie();
+            while (zombie.IsAlive)
+                survivor1.HitZombie(zombie);
+        }
+
+        Assert.Equal(expectedGameLevel, game.Level);
+    }
+
+    [Fact]
+    public void GivenAValidGameAndThreeSurvivors_WhenASurvivorWithMaxLevelDies_ThenGameHasSameLevelAsNextLivingMaxLevelSurvivor()
+    {
+        var survivorName1 = "player1";
+        var survivorName2 = "player2";
+        var survivorName3 = "player3";
+
+        var expectedGameLevel = ISurvivor.SurvivorLevel.Orange;
+
+        var game = Game.Start();
+        game.AddSurvivor(survivorName1);
+        game.AddSurvivor(survivorName2);
+        game.AddSurvivor(survivorName3);
+
+        var survivor1 = game.GetSurvivor(survivorName1);
+        var survivor2 = game.GetSurvivor(survivorName2);
+        var survivor3 = game.GetSurvivor(survivorName3);
+
+        survivor1.IncreaseSurvivorLevel(ISurvivor.SurvivorLevel.Blue);
+        survivor2.IncreaseSurvivorLevel(ISurvivor.SurvivorLevel.Yellow);
+        survivor3.IncreaseSurvivorLevel(ISurvivor.SurvivorLevel.Orange);
+
+        Assert.Equal((int)expectedGameLevel, (int)game.Level);
+    }
 }

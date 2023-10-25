@@ -4,6 +4,14 @@ namespace Zombies.Domain.GameModel;
 
 public interface IGame
 {
+    public enum GameLevel
+    {
+        Blue = 0,
+        Yellow = 6,
+        Orange = 18,
+        Red = 42
+    }
+
     public enum GameState
     {
         Started,
@@ -16,9 +24,11 @@ public interface IGame
 
     IReadOnlyList<string> SurvivorNames { get; }
 
+    GameLevel Level { get; }
+
     void AddSurvivor(string survivorName);
 
-    ILiteSurvivor GetSurvivor(string survivorName);
+    ISurvivor GetSurvivor(string survivorName);
 
     void WoundSurvivor(string survivorName);
 }
@@ -36,7 +46,7 @@ public class Game : IGame
     {
         get
         {
-            if (survivors.Count > 0 && survivors.All(x => ((ILiteSurvivor)x).IsDead))
+            if (survivors.Count > 0 && survivors.All(x => x.IsDead))
                 return GameState.Ended;
             else
                 return GameState.Started;
@@ -46,6 +56,19 @@ public class Game : IGame
     public int SurvivorsInGame => survivors.Count;
 
     public IReadOnlyList<string> SurvivorNames => survivors.Select(x => x.Name).ToList();
+
+    public GameLevel Level
+    {
+        get
+        {
+            if (survivors.Count == 0)
+                return GameLevel.Blue;
+
+            var levelInt = (int)survivors.Max(x => x.Level);
+
+            return (GameLevel)levelInt;
+        }
+    }
 
     public static IGame Start()
     {
@@ -60,9 +83,9 @@ public class Game : IGame
         survivors.Add(Survivor.Create(survivorName));
     }
 
-    public ILiteSurvivor GetSurvivor(string survivorName)
+    public ISurvivor GetSurvivor(string survivorName)
     {
-        return (ILiteSurvivor)GetSurvivorFromList(survivorName);
+        return GetSurvivorFromList(survivorName);
     }
 
     public void WoundSurvivor(string survivorName)

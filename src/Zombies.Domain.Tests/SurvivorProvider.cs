@@ -2,6 +2,19 @@ using AutoFixture;
 
 namespace Zombies.Domain.Tests;
 
+public static class SurvivorExtensions
+{
+    public static void IncreaseSurvivorLevel(this ISurvivor survivor1, ISurvivor.SurvivorLevel desiredSurvivorLevel)
+    {
+        while (survivor1.Level < desiredSurvivorLevel)
+        {
+            var zombie = new Zombie();
+            while (zombie.IsAlive)
+                survivor1.HitZombie(zombie);
+        }
+    }
+}
+
 public class SurvivorProvider
 {
     private readonly IFixture fixture;
