@@ -1,8 +1,9 @@
-﻿using static Zombies.Domain.GameModel.IGame;
+﻿using Zombies.Domain.GameHistory;
+using static Zombies.Domain.GameModel.IGame;
 
 namespace Zombies.Domain.GameModel;
 
-public interface IGame
+public interface IGame : IHistoric
 {
     public enum GameLevel
     {
@@ -35,11 +36,14 @@ public interface IGame
 
 public class Game : IGame
 {
-    private List<ISurvivor> survivors;
+    private readonly IGameHistoryTracker historyTracker;
+    private IList<ISurvivor> survivors;
 
-    private Game()
+    private Game(IGameHistoryTracker historyTracker)
     {
         survivors = new List<ISurvivor>();
+        this.historyTracker = historyTracker;
+        historyTracker.RecordGameStarted();
     }
 
     public GameState State
@@ -70,9 +74,11 @@ public class Game : IGame
         }
     }
 
-    public static IGame Start()
+    public IReadOnlyList<GameEvent> History => historyTracker.History;
+
+    public static IGame Start(IHistoryTracker historyTracker)
     {
-        return new Game();
+        return new Game(historyTracker);
     }
 
     public void AddSurvivor(string survivorName)
@@ -80,7 +86,9 @@ public class Game : IGame
         if (survivors.Any(x => string.Compare(x.Name, survivorName) == 0))
             throw new SurvivorAlreadyExistsInGameException();
 
-        survivors.Add(Survivor.Create(survivorName));
+        survivors.Add(Survivor.Create(survivorName, (IHistoryTracker)historyTracker));
+
+        historyTracker.RecordSurvivorAdded(survivorName);
     }
 
     public ISurvivor GetSurvivor(string survivorName)

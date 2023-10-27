@@ -1,5 +1,7 @@
 ﻿using AutoFixture;
+using Moq;
 using Xunit;
+using Zombies.Domain.GameHistory;
 using Zombies.Domain.SurvivorModel.EquipmentModel;
 
 namespace Zombies.Domain.Tests;
@@ -8,11 +10,16 @@ public class SurvivorTests
 {
     private IFixture fixture;
     private SurvivorProvider survivorProvider;
+    HistoryTrackerFactory historyTrackerFactory;
+    Mock<IClock> clock;
 
     public SurvivorTests()
     {
         fixture = new Fixture();
         survivorProvider = new SurvivorProvider(fixture);
+
+        clock = fixture.Create<Mock<IClock>>();
+        historyTrackerFactory = new HistoryTrackerFactory(clock.Object);
     }
 
     [Fact]
@@ -53,7 +60,7 @@ public class SurvivorTests
     [InlineData(" ")]
     public void GivenIWantToCreateASurvivor_ItFailsIfNameIsMissing(string emptyName)
     {
-        Assert.Throws<ArgumentException>(() => Survivor.Create(emptyName));
+        Assert.Throws<ArgumentException>(() => Survivor.Create(emptyName, historyTrackerFactory.CreateHistoryTracker()));
     }
 
     [Theory]

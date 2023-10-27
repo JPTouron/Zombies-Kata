@@ -1,4 +1,6 @@
-﻿namespace Zombies.Domain;
+﻿using Zombies.Domain.GameHistory;
+
+namespace Zombies.Domain;
 
 public interface ISurvivor
 {
@@ -47,23 +49,28 @@ public interface ISurvivor
 
 public partial class Survivor : ISurvivor
 {
+    private const int maxHealth = 2;
+    private readonly ISurvivorHistoryTracker historyTracker;
     private Equipment equipment;
+    private ISurvivor.SurvivorLevel previousLevel;
 
-    internal Survivor(string name)
+    internal Survivor(string name, ISurvivorHistoryTracker historyTracker)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException(nameof(name), "The survivor name is required and cannot be empty");
 
         Name = name;
+        this.historyTracker = historyTracker;
         Wounds = 0;
         Experience = 0;
+        ResetPreviousLevel();
         RemainingActions = 3;
         equipment = new Equipment();
     }
 
     public int Wounds { get; private set; }
 
-    public ISurvivor.SurvivorStatus Status => Wounds < 2 ? ISurvivor.SurvivorStatus.Alive : ISurvivor.SurvivorStatus.Dead;
+    public ISurvivor.SurvivorStatus Status => HasRemainingHealth() ? ISurvivor.SurvivorStatus.Alive : ISurvivor.SurvivorStatus.Dead;
 
     public string Name { get; }
 
@@ -96,28 +103,27 @@ public partial class Survivor : ISurvivor
         }
     }
 
-    public static ISurvivor Create(string name)
+    public static ISurvivor Create(string name, ISurvivorHistoryTracker historyTracker)
     {
-        return new Survivor(name);
+        return new Survivor(name, historyTracker);
     }
 
     public void AddHandEquipment(string equipmentName)
     {
         equipment.AddEquipment(Equipment.EquipmentType.InHand, equipmentName);
+        historyTracker.RecordSurvivorAcquiredEquipment(Name, equipmentName);
     }
 
     public void AddInReserveEquipment(string equipmentName)
     {
         equipment.AddEquipment(Equipment.EquipmentType.InReserve, equipmentName);
+        historyTracker.RecordSurvivorAcquiredEquipment(Name, equipmentName);
     }
 
     public void HitZombie(Zombie zombie)
     {
         zombie.InflictWound(1);
-        if (zombie.IsDead)
-        {
-            Experience++;
-        }
+        IncreaseExperienceByOneIfZombieDead(zombie);
     }
 
     public void InflictWound(int inflictedWounds)
@@ -125,6 +131,44 @@ public partial class Survivor : ISurvivor
         Wounds += inflictedWounds;
 
         DecreaseEquipmentCapacityBasedOnWounds(inflictedWounds);
+
+        if (HasRemainingHealth())
+            historyTracker.RecordSurvivorWasWounded(Name, inflictedWounds, RemainingHealth());
+        else
+            historyTracker.RecordSurvivorDied(Name);
+    }
+
+    private bool HasRemainingHealth()
+    {
+        return RemainingHealth() >= 1;
+    }
+
+    private void IncreaseExperienceByOneIfZombieDead(Zombie zombie)
+    {
+        if (zombie.IsDead)
+        {
+            Experience++;
+            RecordIfLevelUp();
+        }
+    }
+
+    private void RecordIfLevelUp()
+    {
+        if (previousLevel < Level)
+        {
+            ResetPreviousLevel();
+            historyTracker.RecordSurvivorLeveledUp(Name, Level);
+        }
+    }
+
+    private void ResetPreviousLevel()
+    {
+        previousLevel = Level;
+    }
+
+    private int RemainingHealth()
+    {
+        return maxHealth - Wounds;
     }
 
     private void DecreaseEquipmentCapacityBasedOnWounds(int inflictedWounds)

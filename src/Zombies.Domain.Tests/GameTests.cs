@@ -1,18 +1,33 @@
-﻿using Xunit;
+﻿using AutoFixture;
+using Moq;
+using Xunit;
+using Zombies.Domain.GameHistory;
 using Zombies.Domain.GameModel;
+using static Zombies.Domain.GameHistory.GameEvent;
 using static Zombies.Domain.GameModel.IGame;
 
 namespace Zombies.Domain.Tests;
 
 public class GameTests
 {
+    private IFixture fixture;
+    HistoryTrackerFactory historyTrackerFactory;
+    Mock<IClock> clock;
+
+    public GameTests()
+    {
+        fixture = new Fixture();
+        clock = fixture.Create<Mock<IClock>>();
+
+        historyTrackerFactory = new HistoryTrackerFactory(clock.Object);
+    }
     [Fact]
     public void WhenGameCreated_ThenHasExpectedState()
     {
         var survivorsInGame = 0;
         var state = GameState.Started;
 
-        var game = Game.Start();
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
 
         Assert.Equal(state, game.State);
         Assert.Equal(survivorsInGame, game.SurvivorsInGame);
@@ -25,7 +40,7 @@ public class GameTests
     {
         var survivorsInGame = survivorNames.Length;
 
-        var game = Game.Start();
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
 
         foreach (var name in survivorNames)
         {
@@ -41,7 +56,7 @@ public class GameTests
         var survivorName1 = "player1";
         var survivorName2 = "player1";
 
-        var game = Game.Start();
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
         game.AddSurvivor(survivorName2);
 
         Assert.Throws<SurvivorAlreadyExistsInGameException>(() => game.AddSurvivor(survivorName1));
@@ -54,7 +69,7 @@ public class GameTests
         var survivorName2 = "player2";
         var expectedGameState = GameState.Ended;
 
-        var game = Game.Start();
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
         game.AddSurvivor(survivorName2);
         game.AddSurvivor(survivorName1);
 
@@ -83,7 +98,7 @@ public class GameTests
     {
         var survivorName1 = "player1";
 
-        var game = Game.Start();
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
         game.AddSurvivor(survivorName1);
 
         var survivor1 = game.GetSurvivor(survivorName1);
@@ -101,13 +116,14 @@ public class GameTests
     [Fact]
     public void GivenAValidGameAndThreeSurvivors_WhenASurvivorWithMaxLevelDies_ThenGameHasSameLevelAsNextLivingMaxLevelSurvivor()
     {
+        var expectedGameLevel = ISurvivor.SurvivorLevel.Orange;
+
         var survivorName1 = "player1";
         var survivorName2 = "player2";
         var survivorName3 = "player3";
 
-        var expectedGameLevel = ISurvivor.SurvivorLevel.Orange;
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
 
-        var game = Game.Start();
         game.AddSurvivor(survivorName1);
         game.AddSurvivor(survivorName2);
         game.AddSurvivor(survivorName3);
@@ -121,5 +137,123 @@ public class GameTests
         survivor3.IncreaseSurvivorLevel(ISurvivor.SurvivorLevel.Orange);
 
         Assert.Equal((int)expectedGameLevel, (int)game.Level);
+    }
+
+    [Fact]
+    public void GivenAValidGame_WhenGameStarts_ThenItGetsRecordedInHistory()
+    {
+        var expectedEventType = HistoryEventTypes.GameStarted;
+        var expectedEventsCount = 1;
+        var expectedTimeEvent = DateTime.Now;
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+
+        var history = game.History;
+
+        var recordedGameStartedEvent = history.First();
+
+        Assert.Equal(expectedEventsCount, history.Count);
+        Assert.Equal(expectedEventType, recordedGameStartedEvent.Type);
+        Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
+        Assert.Equal("A new game has started!", recordedGameStartedEvent.Message);
+    }
+
+    [Fact]
+    public void GivenAValidGame_WhenSurvivorIsAddedToTheGame_ThenItGetsRecordedInHistory()
+    {
+        var expectedEventType = HistoryEventTypes.SurvivorAddedToGame;
+        var expectedSurvivorName = "player1";
+        var expectedTimeEvent = DateTime.Now;
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(expectedSurvivorName);
+
+        var history = game.History;
+
+        var recordedGameStartedEvent = history.Single(x => x.Type == expectedEventType && x.Message.Contains(expectedSurvivorName));
+
+        Assert.Equal(expectedEventType, recordedGameStartedEvent.Type);
+        Assert.Equal($"Survivor {expectedSurvivorName} just joined the game", recordedGameStartedEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
+    }
+
+    [Fact]
+    public void GivenAValidGame_WhenSurvivorAcquiresHandEquipment_ThenItGetsRecordedInHistory()
+    {
+        var expectedEventType = HistoryEventTypes.SurvivorAcquiredEquipment;
+        var expectedSurvivorName = "player1";
+        var expectedEquipmentName = "golf club";
+        var expectedTimeEvent = DateTime.Now;
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(expectedSurvivorName);
+
+        var survivor = game.GetSurvivor(expectedSurvivorName);
+        survivor.AddHandEquipment(expectedEquipmentName);
+
+        var history = game.History;
+
+        var recordedGameStartedEvent = history.Single(x => x.Type == expectedEventType && x.Message.Contains(expectedSurvivorName));
+
+        Assert.Equal(expectedEventType, recordedGameStartedEvent.Type);
+        Assert.Equal($"Survivor {expectedSurvivorName} acquired {expectedEquipmentName}", recordedGameStartedEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
+    }
+
+    [Fact]
+    public void GivenAValidGame_WhenSurvivorAcquiresInReserveEquipment_ThenItGetsRecordedInHistory()
+    {
+        var expectedEventType = HistoryEventTypes.SurvivorAcquiredEquipment;
+        var expectedSurvivorName = "player1";
+        var expectedEquipmentName = "golf club";
+        var expectedTimeEvent = DateTime.Now;
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(expectedSurvivorName);
+
+        var survivor = game.GetSurvivor(expectedSurvivorName);
+        survivor.AddInReserveEquipment(expectedEquipmentName);
+
+        var history = game.History;
+
+        var recordedGameStartedEvent = history.Single(x => x.Type == expectedEventType && x.Message.Contains(expectedSurvivorName));
+
+        Assert.Equal(expectedEventType, recordedGameStartedEvent.Type);
+        Assert.Equal($"Survivor {expectedSurvivorName} acquired {expectedEquipmentName}", recordedGameStartedEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
+    }
+
+    [Fact]
+    public void GivenAValidGame_WhenSurvivorIswounded_ThenItGetsRecordedInHistory()
+    {
+        var expectedEventType = HistoryEventTypes.SurvivorWasWounded;
+        var expectedSurvivorName = "player1";
+        var expectedTimeEvent = DateTime.Now;
+        var expectedWoundsreceived = 1;
+        var expectedRemainingHealth = 1;
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(expectedSurvivorName);
+
+        var survivor = game.GetSurvivor(expectedSurvivorName);
+        survivor.InflictWound(expectedWoundsreceived);
+
+        var history = game.History;
+
+        var recordedGameStartedEvent = history.Single(x => x.Type == expectedEventType && x.Message.Contains(expectedSurvivorName));
+
+        Assert.Equal(expectedEventType, recordedGameStartedEvent.Type);
+        Assert.Equal($"Survivor {expectedSurvivorName} was wounded {expectedWoundsreceived} times, remaining health: {expectedRemainingHealth}", recordedGameStartedEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
+    }
+
+    private void SetupClockDependency(DateTime mockedNow)
+    {
+        clock.SetupGet(x => x.UtcNow).Returns(mockedNow);
     }
 }
