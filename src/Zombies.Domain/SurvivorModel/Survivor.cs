@@ -38,6 +38,8 @@ public interface ISurvivor
 
     bool IsDead { get; }
 
+    bool IsAlive { get; }
+
     void InflictWound(int inflictedWounds);
 
     void HitZombie(Zombie zombie);
@@ -47,26 +49,43 @@ public interface ISurvivor
     void AddInReserveEquipment(string equipmentName);
 }
 
-public partial class Survivor : ISurvivor
+
+public delegate void SurvivorEventHandler();
+internal interface ISurvivorNotifications
+{
+    event SurvivorEventHandler OnSurvivorLeveledUp;
+    event SurvivorEventHandler OnSurvivorDied;
+}
+
+
+public partial class Survivor : ISurvivor, ISurvivorNotifications
 {
     private const int maxHealth = 2;
     private readonly ISurvivorHistoryTracker historyTracker;
     private Equipment equipment;
     private ISurvivor.SurvivorLevel previousLevel;
 
-    internal Survivor(string name, ISurvivorHistoryTracker historyTracker)
+    public event SurvivorEventHandler OnSurvivorLeveledUp;
+    public event SurvivorEventHandler OnSurvivorDied;
+
+    internal Survivor(string name,
+                      ISurvivorHistoryTracker historyTracker)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException(nameof(name), "The survivor name is required and cannot be empty");
 
         Name = name;
         this.historyTracker = historyTracker;
+        //this.survivorNotifications = survivorNotifications;
         Wounds = 0;
         Experience = 0;
         ResetPreviousLevel();
         RemainingActions = 3;
         equipment = new Equipment();
+        OnSurvivorLeveledUp = delegate { };
+        OnSurvivorDied = delegate { };
     }
+
 
     public int Wounds { get; private set; }
 
@@ -83,6 +102,8 @@ public partial class Survivor : ISurvivor
     public int InReserveEquipmentCapacity => equipment.CurrentMaximumInReserveEquipmentSize;
 
     public bool IsDead => Status == ISurvivor.SurvivorStatus.Dead;
+
+    public bool IsAlive => !IsDead;
 
     public int Experience { get; private set; }
 
@@ -103,9 +124,9 @@ public partial class Survivor : ISurvivor
         }
     }
 
-    public static ISurvivor Create(string name, ISurvivorHistoryTracker historyTracker)
+    public static ISurvivor Create(string name, ISurvivorHistoryTracker historyTracker)//, ISurvivorNotifications survivorNotifications)
     {
-        return new Survivor(name, historyTracker);
+        return new Survivor(name, historyTracker);//, survivorNotifications);
     }
 
     public void AddHandEquipment(string equipmentName)
@@ -135,7 +156,10 @@ public partial class Survivor : ISurvivor
         if (HasRemainingHealth())
             historyTracker.RecordSurvivorWasWounded(Name, inflictedWounds, RemainingHealth());
         else
+        {
             historyTracker.RecordSurvivorDied(Name);
+            OnSurvivorDied();
+        }
     }
 
     private bool HasRemainingHealth()
@@ -158,6 +182,7 @@ public partial class Survivor : ISurvivor
         {
             ResetPreviousLevel();
             historyTracker.RecordSurvivorLeveledUp(Name, Level);
+            OnSurvivorLeveledUp();
         }
     }
 
@@ -176,4 +201,5 @@ public partial class Survivor : ISurvivor
         for (int i = 0; i < inflictedWounds; i++)
             equipment.DecreaseInReserveCapactityByOne();
     }
+
 }

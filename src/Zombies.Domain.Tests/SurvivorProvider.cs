@@ -15,6 +15,14 @@ public static class SurvivorExtensions
                 survivor1.HitZombie(zombie);
         }
     }
+
+    public static void Kill(this ISurvivor survivor)
+    {
+        while (survivor.IsAlive)
+        {
+            survivor.InflictWound(1);
+        }
+    }
 }
 
 public class SurvivorProvider
@@ -26,13 +34,16 @@ public class SurvivorProvider
         this.fixture = fixture;
     }
 
-    public ISurvivor CreateValid(string? name = null, ISurvivorHistoryTracker? survivorHistoryTracker = null)
+    public ISurvivor CreateValid(string? name = null,
+                                 ISurvivorHistoryTracker? survivorHistoryTracker = null)//,
+                                                                                        //ISurvivorNotifications? survivorNotifications = null)
     {
         name ??= fixture.Create<string>();
 
         survivorHistoryTracker ??= new HistoryTrackerFactory(fixture.Create<Mock<IClock>>().Object).CreateHistoryTracker();
+        //survivorNotifications ??= new HistoryTrackerFactory(fixture.Create<Mock<IClock>>().Object).CreateHistoryTracker();
 
-        var survivor = Survivor.Create(name, survivorHistoryTracker);
+        var survivor = Survivor.Create(name, survivorHistoryTracker);//, SurvivorNotifications);
 
         return survivor;
     }

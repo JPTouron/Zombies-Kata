@@ -60,7 +60,8 @@ public class SurvivorTests
     [InlineData(" ")]
     public void GivenIWantToCreateASurvivor_ItFailsIfNameIsMissing(string emptyName)
     {
-        Assert.Throws<ArgumentException>(() => Survivor.Create(emptyName, historyTrackerFactory.CreateHistoryTracker()));
+        Assert.Throws<ArgumentException>(() => Survivor.Create(emptyName,
+                                                               historyTrackerFactory.CreateHistoryTracker()));
     }
 
     [Theory]

@@ -252,6 +252,115 @@ public class GameTests
         Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
     }
 
+    [Fact]
+    public void GivenAValidGame_WhenSurvivorDies_ThenItGetsRecordedInHistory()
+    {
+        var expectedEventType = HistoryEventTypes.SurvivorDied;
+        var expectedSurvivorName = "player1";
+        var expectedTimeEvent = DateTime.Now;
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(expectedSurvivorName);
+
+        var survivor = game.GetSurvivor(expectedSurvivorName);
+        survivor.Kill();
+
+        var history = game.History;
+
+        var recordedGameStartedEvent = history.Single(x => x.Type == expectedEventType && x.Message.Contains(expectedSurvivorName));
+
+        Assert.Equal(expectedEventType, recordedGameStartedEvent.Type);
+        Assert.Equal($"Survivor {expectedSurvivorName} has died", recordedGameStartedEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
+    }
+
+    [Theory]
+    [InlineData(ISurvivor.SurvivorLevel.Yellow)]
+    [InlineData(ISurvivor.SurvivorLevel.Orange)]
+    [InlineData(ISurvivor.SurvivorLevel.Red)]
+    public void GivenAValidGame_WhenSurvivorLevelsUp_ThenItGetsRecordedInHistory(ISurvivor.SurvivorLevel expectedLevel)
+    {
+        var expectedEventType = HistoryEventTypes.SurvivorLeveledUp;
+        var expectedSurvivorName = "player1";
+        var expectedTimeEvent = DateTime.Now;
+
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(expectedSurvivorName);
+
+        var survivor = game.GetSurvivor(expectedSurvivorName);
+        survivor.IncreaseSurvivorLevel(expectedLevel);
+
+        var history = game.History;
+
+        var recordedGameStartedEvent = history.Single(x => x.Type == expectedEventType && x.Message.Contains(expectedLevel.ToString()));
+
+        Assert.Equal(expectedEventType, recordedGameStartedEvent.Type);
+        Assert.Equal($"Survivor {expectedSurvivorName} has leveled up to {expectedLevel} level!", recordedGameStartedEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
+    }
+    [Theory]
+    [InlineData(ISurvivor.SurvivorLevel.Yellow, GameLevel.Yellow)]
+    [InlineData(ISurvivor.SurvivorLevel.Orange, GameLevel.Orange)]
+    [InlineData(ISurvivor.SurvivorLevel.Red, GameLevel.Red)]
+    public void GivenAValidGame_WhenGameLevelsUp_ThenItGetsRecordedInHistory(ISurvivor.SurvivorLevel desiredSurvivorLevel, GameLevel expectedGameLevel)
+    {
+        var expectedEventType = HistoryEventTypes.GameLeveledUp;
+        var expectedSurvivorName = "player1";
+        var expectedTimeEvent = DateTime.Now;
+
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(expectedSurvivorName);
+
+        var survivor = game.GetSurvivor(expectedSurvivorName);
+        survivor.IncreaseSurvivorLevel(desiredSurvivorLevel);
+
+        var history = game.History;
+
+        var recordedGameLeveledUpEvent = history.Single(x => x.Type == expectedEventType && x.Message.Contains(expectedGameLevel.ToString()));
+
+        Assert.Equal(expectedEventType, recordedGameLeveledUpEvent.Type);
+        Assert.Equal($"Game reached a new level: {expectedGameLevel}!", recordedGameLeveledUpEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameLeveledUpEvent.DateTime);
+    }
+
+
+    [Fact]
+    public void GivenAValidGame_WhenAllSurvivorsDieAndGameEnds_ThenItGetsRecordedInHistory()
+    {
+        var survivorName1 = "player1";
+        var survivorName2 = "player2";
+        var expectedEventType = HistoryEventTypes.GameEnded;
+        var expectedTimeEvent = DateTime.Now;
+
+        SetupClockDependency(expectedTimeEvent);
+
+        var game = Game.Start(historyTrackerFactory.CreateHistoryTracker());
+        game.AddSurvivor(survivorName2);
+        game.AddSurvivor(survivorName1);
+
+        //kill player1
+        game.WoundSurvivor(survivorName1);
+        game.WoundSurvivor(survivorName1);
+
+        //kill player2
+        game.WoundSurvivor(survivorName2);
+        game.WoundSurvivor(survivorName2);
+
+        var history = game.History;
+
+        var recordedGameEndedEvent = history.Single(x => x.Type == expectedEventType);
+
+        Assert.Equal(expectedEventType, recordedGameEndedEvent.Type);
+        Assert.Equal($"Game Ended, all survivors have died!", recordedGameEndedEvent.Message);
+        Assert.Equal(expectedTimeEvent, recordedGameEndedEvent.DateTime);
+    }
+
+
     private void SetupClockDependency(DateTime mockedNow)
     {
         clock.SetupGet(x => x.UtcNow).Returns(mockedNow);

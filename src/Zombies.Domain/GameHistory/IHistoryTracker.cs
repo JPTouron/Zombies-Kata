@@ -48,7 +48,10 @@ public class GameEvent
         SurvivorAddedToGame,
         SurvivorAcquiredEquipment,
         SurvivorWasWounded,
-
+        SurvivorDied,
+        SurvivorLeveledUp,
+        GameLeveledUp,
+        GameEnded
     }
 
     public string Message { get; }
@@ -88,10 +91,12 @@ internal class HistoryTracker : IHistoryTracker
 
     public void RecordGameEnded()
     {
+        gameEvents.Add(new GameEvent(GameEvent.HistoryEventTypes.GameEnded, $"Game Ended, all survivors have died!", clock.UtcNow));
     }
 
     public void RecordGameLevelChanged(IGame.GameLevel newLevel)
     {
+        gameEvents.Add(new GameEvent(GameEvent.HistoryEventTypes.GameLeveledUp, $"Game reached a new level: {newLevel}!", clock.UtcNow));
     }
 
     public void RecordGameStarted()
@@ -111,10 +116,12 @@ internal class HistoryTracker : IHistoryTracker
 
     public void RecordSurvivorDied(string survivorName)
     {
+        gameEvents.Add(new GameEvent(GameEvent.HistoryEventTypes.SurvivorDied, $"Survivor {survivorName} has died", clock.UtcNow));
     }
 
     public void RecordSurvivorLeveledUp(string survivorName, ISurvivor.SurvivorLevel newLevel)
     {
+        gameEvents.Add(new GameEvent(GameEvent.HistoryEventTypes.SurvivorLeveledUp, $"Survivor {survivorName} has leveled up to {newLevel} level!", clock.UtcNow));
     }
 
     public void RecordSurvivorWasWounded(string survivorName, int woundsReceived, int currentHealth)

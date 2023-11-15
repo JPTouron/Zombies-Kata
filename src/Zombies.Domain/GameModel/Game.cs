@@ -34,9 +34,18 @@ public interface IGame : IHistoric
     void WoundSurvivor(string survivorName);
 }
 
-public class Game : IGame
+public interface IGameReactions
+{
+    void CheckIfGameLevelChanged();
+
+    void CheckIfAllsurvivorsDiedAndGameEnded();
+}
+
+public class Game : IGame, IGameReactions
 {
     private readonly IGameHistoryTracker historyTracker;
+    private GameLevel previousLevel;
+
     private IList<ISurvivor> survivors;
 
     private Game(IGameHistoryTracker historyTracker)
@@ -44,6 +53,7 @@ public class Game : IGame
         survivors = new List<ISurvivor>();
         this.historyTracker = historyTracker;
         historyTracker.RecordGameStarted();
+        ResetPreviousLevel();
     }
 
     public GameState State
@@ -86,7 +96,10 @@ public class Game : IGame
         if (survivors.Any(x => string.Compare(x.Name, survivorName) == 0))
             throw new SurvivorAlreadyExistsInGameException();
 
-        survivors.Add(Survivor.Create(survivorName, (IHistoryTracker)historyTracker));
+        //var notif = new SurvivorNotifications(this);
+        var survivor = Survivor.Create(survivorName, (IHistoryTracker)historyTracker);
+        survivors.Add(survivor);//, notif));
+        SubscribeToSurvivorEvents((ISurvivorNotifications)survivor);
 
         historyTracker.RecordSurvivorAdded(survivorName);
     }
@@ -96,10 +109,49 @@ public class Game : IGame
         return GetSurvivorFromList(survivorName);
     }
 
+    public void CheckIfGameLevelChanged()
+    {
+        var currentLevel = Level;
+        if (previousLevel != currentLevel)
+        {
+            historyTracker.RecordGameLevelChanged(currentLevel);
+            ResetPreviousLevel();
+        }
+    }
+
+    public void CheckIfAllsurvivorsDiedAndGameEnded()
+    {
+        if (State == GameState.Ended)
+        {
+            historyTracker.RecordGameEnded();
+            foreach (var survivor in survivors)
+            {
+                UnSubscribeToSurvivorEvents((ISurvivorNotifications)survivor);
+            }
+        }
+    }
+
     public void WoundSurvivor(string survivorName)
     {
         var survivor = GetSurvivorFromList(survivorName);
         survivor.InflictWound(1);
+    }
+
+    private void SubscribeToSurvivorEvents(ISurvivorNotifications survivor)
+    {
+        survivor.OnSurvivorDied += CheckIfAllsurvivorsDiedAndGameEnded;
+        survivor.OnSurvivorLeveledUp += CheckIfGameLevelChanged;
+    }
+
+    private void UnSubscribeToSurvivorEvents(ISurvivorNotifications survivor)
+    {
+        survivor.OnSurvivorDied -= CheckIfAllsurvivorsDiedAndGameEnded;
+        survivor.OnSurvivorLeveledUp -= CheckIfGameLevelChanged;
+    }
+
+    private void ResetPreviousLevel()
+    {
+        previousLevel = Level;
     }
 
     private ISurvivor GetSurvivorFromList(string survivorName)
@@ -107,3 +159,32 @@ public class Game : IGame
         return survivors.Single(x => string.Compare(x.Name, survivorName) == 0);
     }
 }
+
+//public class SurvivorNotificationsFactory
+//{
+//    public ISurvivorNotifications Create(IGameReactions gameReactions)
+//    {
+//        return new SurvivorNotifications(gameReactions);
+//    }
+
+//}
+
+//internal class SurvivorNotifications : ISurvivorNotifications
+//{
+//    private readonly IGameReactions gameReactions;
+
+//    public SurvivorNotifications(IGameReactions gameReactions)
+//    {
+//        this.gameReactions = gameReactions;
+//    }
+
+//    public void SurvivorDied()
+//    {
+//        gameReactions.RecalculateGameStatus();
+//    }
+
+//    public void SurvivorLeveledUp()
+//    {
+//        gameReactions.RecalculateGameLevel();
+//    }
+//}
