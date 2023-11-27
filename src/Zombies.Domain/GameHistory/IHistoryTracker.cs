@@ -16,10 +16,7 @@ public interface IGameHistoryTracker : IHistoric
     void RecordGameLevelChanged(IGame.GameLevel newLevel);
 
     void RecordGameEnded();
-}
 
-public interface ISurvivorHistoryTracker
-{
     void RecordSurvivorAcquiredEquipment(string survivorName, string equipmentName);
 
     void RecordSurvivorWasWounded(string survivorName, int woundsReceived, int currentHealth);
@@ -29,7 +26,7 @@ public interface ISurvivorHistoryTracker
     void RecordSurvivorLeveledUp(string survivorName, ISurvivor.SurvivorLevel newLevel);
 }
 
-public interface IHistoryTracker : IGameHistoryTracker, ISurvivorHistoryTracker
+public interface IHistoryTracker : IGameHistoryTracker
 {
 }
 

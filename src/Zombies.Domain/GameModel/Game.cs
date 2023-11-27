@@ -34,14 +34,7 @@ public interface IGame : IHistoric
     void WoundSurvivor(string survivorName);
 }
 
-public interface IGameReactions
-{
-    void CheckIfGameLevelChanged();
-
-    void CheckIfAllsurvivorsDiedAndGameEnded();
-}
-
-public class Game : IGame, IGameReactions
+public class Game : IGame
 {
     private readonly IGameHistoryTracker historyTracker;
     private GameLevel previousLevel;
@@ -96,9 +89,8 @@ public class Game : IGame, IGameReactions
         if (survivors.Any(x => string.Compare(x.Name, survivorName) == 0))
             throw new SurvivorAlreadyExistsInGameException();
 
-        //var notif = new SurvivorNotifications(this);
-        var survivor = Survivor.Create(survivorName, (IHistoryTracker)historyTracker);
-        survivors.Add(survivor);//, notif));
+        var survivor = Survivor.Create(survivorName);
+        survivors.Add(survivor);
         SubscribeToSurvivorEvents((ISurvivorNotifications)survivor);
 
         historyTracker.RecordSurvivorAdded(survivorName);
@@ -109,7 +101,13 @@ public class Game : IGame, IGameReactions
         return GetSurvivorFromList(survivorName);
     }
 
-    public void CheckIfGameLevelChanged()
+    public void WoundSurvivor(string survivorName)
+    {
+        var survivor = GetSurvivorFromList(survivorName);
+        survivor.InflictWound(1);
+    }
+
+    private void TryToUpdateGameLevel()
     {
         var currentLevel = Level;
         if (previousLevel != currentLevel)
@@ -119,7 +117,7 @@ public class Game : IGame, IGameReactions
         }
     }
 
-    public void CheckIfAllsurvivorsDiedAndGameEnded()
+    private void TryToUpdateGameState()
     {
         if (State == GameState.Ended)
         {
@@ -131,22 +129,42 @@ public class Game : IGame, IGameReactions
         }
     }
 
-    public void WoundSurvivor(string survivorName)
-    {
-        var survivor = GetSurvivorFromList(survivorName);
-        survivor.InflictWound(1);
-    }
-
     private void SubscribeToSurvivorEvents(ISurvivorNotifications survivor)
     {
-        survivor.OnSurvivorDied += CheckIfAllsurvivorsDiedAndGameEnded;
-        survivor.OnSurvivorLeveledUp += CheckIfGameLevelChanged;
+        survivor.OnSurvivorAcquiredEquipment += OnSurvivorAcquiredEquipment;
+        survivor.OnSurvivorWounded += OnSurvivorWounded;
+        survivor.OnSurvivorDied += OnSurvivorDied;
+        survivor.OnSurvivorLeveledUp += OnSurvivorLeveledUp;
+    }
+
+    private void OnSurvivorLeveledUp(string survivorName, ISurvivor.SurvivorLevel newLevel)
+    {
+        historyTracker.RecordSurvivorLeveledUp(survivorName, newLevel);
+        TryToUpdateGameLevel();
+    }
+
+    private void OnSurvivorDied(string survivorName)
+    {
+        historyTracker.RecordSurvivorDied(survivorName);
+        TryToUpdateGameState();
+    }
+
+    private void OnSurvivorWounded(string survivorName, int woundsReceived, int currentHealth)
+    {
+        historyTracker.RecordSurvivorWasWounded(survivorName, woundsReceived, currentHealth);
+    }
+
+    private void OnSurvivorAcquiredEquipment(string survivorName, string equipmentName)
+    {
+        historyTracker.RecordSurvivorAcquiredEquipment(survivorName, equipmentName);
     }
 
     private void UnSubscribeToSurvivorEvents(ISurvivorNotifications survivor)
     {
-        survivor.OnSurvivorDied -= CheckIfAllsurvivorsDiedAndGameEnded;
-        survivor.OnSurvivorLeveledUp -= CheckIfGameLevelChanged;
+        survivor.OnSurvivorAcquiredEquipment -= OnSurvivorAcquiredEquipment;
+        survivor.OnSurvivorWounded -= OnSurvivorWounded;
+        survivor.OnSurvivorDied -= OnSurvivorDied;
+        survivor.OnSurvivorLeveledUp -= OnSurvivorLeveledUp;
     }
 
     private void ResetPreviousLevel()
@@ -159,32 +177,3 @@ public class Game : IGame, IGameReactions
         return survivors.Single(x => string.Compare(x.Name, survivorName) == 0);
     }
 }
-
-//public class SurvivorNotificationsFactory
-//{
-//    public ISurvivorNotifications Create(IGameReactions gameReactions)
-//    {
-//        return new SurvivorNotifications(gameReactions);
-//    }
-
-//}
-
-//internal class SurvivorNotifications : ISurvivorNotifications
-//{
-//    private readonly IGameReactions gameReactions;
-
-//    public SurvivorNotifications(IGameReactions gameReactions)
-//    {
-//        this.gameReactions = gameReactions;
-//    }
-
-//    public void SurvivorDied()
-//    {
-//        gameReactions.RecalculateGameStatus();
-//    }
-
-//    public void SurvivorLeveledUp()
-//    {
-//        gameReactions.RecalculateGameLevel();
-//    }
-//}

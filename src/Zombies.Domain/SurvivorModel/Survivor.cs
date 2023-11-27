@@ -1,6 +1,12 @@
-﻿using Zombies.Domain.GameHistory;
+﻿namespace Zombies.Domain;
 
-namespace Zombies.Domain;
+public delegate void SurvivorLeveledUpEventHandler(string survivorName, ISurvivor.SurvivorLevel newLevel);
+
+public delegate void SurvivorDiedEventHandler(string survivorName);
+
+public delegate void SurvivorWoundedEventHandler(string survivorName, int woundsReceived, int currentHealth);
+
+public delegate void SurvivorAcquiredEquipmentEventHandler(string survivorName, string equipmentName);
 
 public interface ISurvivor
 {
@@ -49,43 +55,50 @@ public interface ISurvivor
     void AddInReserveEquipment(string equipmentName);
 }
 
-
-public delegate void SurvivorEventHandler();
 internal interface ISurvivorNotifications
 {
-    event SurvivorEventHandler OnSurvivorLeveledUp;
-    event SurvivorEventHandler OnSurvivorDied;
-}
+    event SurvivorAcquiredEquipmentEventHandler OnSurvivorAcquiredEquipment;
 
+    event SurvivorWoundedEventHandler OnSurvivorWounded;
+
+    event SurvivorDiedEventHandler OnSurvivorDied;
+
+    event SurvivorLeveledUpEventHandler OnSurvivorLeveledUp;
+}
 
 public partial class Survivor : ISurvivor, ISurvivorNotifications
 {
     private const int maxHealth = 2;
-    private readonly ISurvivorHistoryTracker historyTracker;
+
     private Equipment equipment;
+
     private ISurvivor.SurvivorLevel previousLevel;
 
-    public event SurvivorEventHandler OnSurvivorLeveledUp;
-    public event SurvivorEventHandler OnSurvivorDied;
+    public event SurvivorAcquiredEquipmentEventHandler OnSurvivorAcquiredEquipment;
 
-    internal Survivor(string name,
-                      ISurvivorHistoryTracker historyTracker)
+    public event SurvivorWoundedEventHandler OnSurvivorWounded;
+
+    public event SurvivorDiedEventHandler OnSurvivorDied;
+
+    public event SurvivorLeveledUpEventHandler OnSurvivorLeveledUp;
+
+    internal Survivor(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException(nameof(name), "The survivor name is required and cannot be empty");
 
         Name = name;
-        this.historyTracker = historyTracker;
-        //this.survivorNotifications = survivorNotifications;
         Wounds = 0;
         Experience = 0;
         ResetPreviousLevel();
         RemainingActions = 3;
         equipment = new Equipment();
-        OnSurvivorLeveledUp = delegate { };
-        OnSurvivorDied = delegate { };
-    }
 
+        OnSurvivorAcquiredEquipment = delegate { };
+        OnSurvivorWounded = delegate { };
+        OnSurvivorDied = delegate { };
+        OnSurvivorLeveledUp = delegate { };
+    }
 
     public int Wounds { get; private set; }
 
@@ -124,21 +137,21 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
         }
     }
 
-    public static ISurvivor Create(string name, ISurvivorHistoryTracker historyTracker)//, ISurvivorNotifications survivorNotifications)
+    public static ISurvivor Create(string name)
     {
-        return new Survivor(name, historyTracker);//, survivorNotifications);
+        return new Survivor(name);
     }
 
     public void AddHandEquipment(string equipmentName)
     {
         equipment.AddEquipment(Equipment.EquipmentType.InHand, equipmentName);
-        historyTracker.RecordSurvivorAcquiredEquipment(Name, equipmentName);
+        OnSurvivorAcquiredEquipment(Name, equipmentName);
     }
 
     public void AddInReserveEquipment(string equipmentName)
     {
         equipment.AddEquipment(Equipment.EquipmentType.InReserve, equipmentName);
-        historyTracker.RecordSurvivorAcquiredEquipment(Name, equipmentName);
+        OnSurvivorAcquiredEquipment(Name, equipmentName);
     }
 
     public void HitZombie(Zombie zombie)
@@ -154,11 +167,10 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
         DecreaseEquipmentCapacityBasedOnWounds(inflictedWounds);
 
         if (HasRemainingHealth())
-            historyTracker.RecordSurvivorWasWounded(Name, inflictedWounds, RemainingHealth());
+            OnSurvivorWounded(Name, inflictedWounds, RemainingHealth());
         else
         {
-            historyTracker.RecordSurvivorDied(Name);
-            OnSurvivorDied();
+            OnSurvivorDied(Name);
         }
     }
 
@@ -181,8 +193,7 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
         if (previousLevel < Level)
         {
             ResetPreviousLevel();
-            historyTracker.RecordSurvivorLeveledUp(Name, Level);
-            OnSurvivorLeveledUp();
+            OnSurvivorLeveledUp(Name, Level);
         }
     }
 
@@ -201,5 +212,4 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
         for (int i = 0; i < inflictedWounds; i++)
             equipment.DecreaseInReserveCapactityByOne();
     }
-
 }

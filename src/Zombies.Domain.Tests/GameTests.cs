@@ -11,8 +11,8 @@ namespace Zombies.Domain.Tests;
 public class GameTests
 {
     private IFixture fixture;
-    HistoryTrackerFactory historyTrackerFactory;
-    Mock<IClock> clock;
+    private HistoryTrackerFactory historyTrackerFactory;
+    private Mock<IClock> clock;
 
     public GameTests()
     {
@@ -21,6 +21,7 @@ public class GameTests
 
         historyTrackerFactory = new HistoryTrackerFactory(clock.Object);
     }
+
     [Fact]
     public void WhenGameCreated_ThenHasExpectedState()
     {
@@ -301,6 +302,7 @@ public class GameTests
         Assert.Equal($"Survivor {expectedSurvivorName} has leveled up to {expectedLevel} level!", recordedGameStartedEvent.Message);
         Assert.Equal(expectedTimeEvent, recordedGameStartedEvent.DateTime);
     }
+
     [Theory]
     [InlineData(ISurvivor.SurvivorLevel.Yellow, GameLevel.Yellow)]
     [InlineData(ISurvivor.SurvivorLevel.Orange, GameLevel.Orange)]
@@ -327,7 +329,6 @@ public class GameTests
         Assert.Equal($"Game reached a new level: {expectedGameLevel}!", recordedGameLeveledUpEvent.Message);
         Assert.Equal(expectedTimeEvent, recordedGameLeveledUpEvent.DateTime);
     }
-
 
     [Fact]
     public void GivenAValidGame_WhenAllSurvivorsDieAndGameEnds_ThenItGetsRecordedInHistory()
@@ -359,7 +360,6 @@ public class GameTests
         Assert.Equal($"Game Ended, all survivors have died!", recordedGameEndedEvent.Message);
         Assert.Equal(expectedTimeEvent, recordedGameEndedEvent.DateTime);
     }
-
 
     private void SetupClockDependency(DateTime mockedNow)
     {

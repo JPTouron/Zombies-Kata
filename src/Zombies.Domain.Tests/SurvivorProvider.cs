@@ -1,6 +1,4 @@
 using AutoFixture;
-using Moq;
-using Zombies.Domain.GameHistory;
 
 namespace Zombies.Domain.Tests;
 
@@ -34,16 +32,11 @@ public class SurvivorProvider
         this.fixture = fixture;
     }
 
-    public ISurvivor CreateValid(string? name = null,
-                                 ISurvivorHistoryTracker? survivorHistoryTracker = null)//,
-                                                                                        //ISurvivorNotifications? survivorNotifications = null)
+    public ISurvivor CreateValid(string? name = null)
     {
         name ??= fixture.Create<string>();
 
-        survivorHistoryTracker ??= new HistoryTrackerFactory(fixture.Create<Mock<IClock>>().Object).CreateHistoryTracker();
-        //survivorNotifications ??= new HistoryTrackerFactory(fixture.Create<Mock<IClock>>().Object).CreateHistoryTracker();
-
-        var survivor = Survivor.Create(name, survivorHistoryTracker);//, SurvivorNotifications);
+        var survivor = Survivor.Create(name);
 
         return survivor;
     }
