@@ -1,8 +1,8 @@
 ﻿using AutoFixture;
 using Moq;
 using Xunit;
-using Zombies.Domain.GameHistory;
 using Zombies.Domain.SurvivorModel.EquipmentModel;
+using Zombies.Domain.WeaponsModel;
 
 namespace Zombies.Domain.Tests;
 
@@ -10,7 +10,6 @@ public class SurvivorTests
 {
     private IFixture fixture;
     private SurvivorProvider survivorProvider;
-    private HistoryTrackerFactory historyTrackerFactory;
     private Mock<IClock> clock;
 
     public SurvivorTests()
@@ -19,7 +18,6 @@ public class SurvivorTests
         survivorProvider = new SurvivorProvider(fixture);
 
         clock = fixture.Create<Mock<IClock>>();
-        historyTrackerFactory = new HistoryTrackerFactory(clock.Object);
     }
 
     [Fact]
@@ -75,19 +73,16 @@ public class SurvivorTests
         Assert.Equal(expectedFinalStatus, survivor.Status);
     }
 
-    [Theory]
-    [InlineData("a")]
-    [InlineData("b", "c")]
-    public void GivenAValidSurvivor_WhenAddingHandEquipment_ThenCanHaveUpToTwoElements(params string[] equipmentToAdd)
+    [Fact]
+    public void GivenAValidSurvivor_WhenAddingHandEquipment_ThenCanHaveUpToTwoElements()
     {
+        var expectedTotalEquipmentCount = 2;
         var survivor = survivorProvider.CreateValid();
 
-        foreach (var item in equipmentToAdd)
-        {
-            survivor.AddHandEquipment(item);
-        }
+        survivor.AddHandEquipment(new Bat());
+        survivor.AddHandEquipment(new Rockslinger());
 
-        Assert.Equal(equipmentToAdd, survivor.InHandEquipment);
+        Assert.Equal(expectedTotalEquipmentCount, survivor.InHandEquipment.Count);
     }
 
     [Fact]
@@ -95,10 +90,10 @@ public class SurvivorTests
     {
         var survivor = survivorProvider.CreateValid();
 
-        survivor.AddHandEquipment("a");
-        survivor.AddHandEquipment("b");
+        survivor.AddHandEquipment(new Bat());
+        survivor.AddHandEquipment(new Rockslinger());
 
-        Assert.Throws<EquipmentFullException>(() => survivor.AddHandEquipment("c"));
+        Assert.Throws<EquipmentFullException>(() => survivor.AddHandEquipment(new Bat()));
     }
 
     [Theory]
@@ -109,23 +104,21 @@ public class SurvivorTests
     {
         var survivor = survivorProvider.CreateValid();
 
-        Assert.Throws<ArgumentException>(() => survivor.AddHandEquipment(equipmentName));
+        Assert.Throws<ArgumentException>(() => survivor.AddHandEquipment(new AdHocWeapon(equipmentName)));
     }
 
-    [Theory]
-    [InlineData("a")]
-    [InlineData("b", "c")]
-    [InlineData("b", "c", "d")]
-    public void GivenAValidSurvivor_WhenAddingReserveEquipment_ThenCanHaveUpToThreeElements(params string[] equipmentToAdd)
+    [Fact]
+    public void GivenAValidSurvivor_WhenAddingReserveEquipment_ThenCanHaveUpToThreeElements()
     {
+        var expectedTotalEquipmentCount = 3;
+
         var survivor = survivorProvider.CreateValid();
 
-        foreach (var item in equipmentToAdd)
-        {
-            survivor.AddInReserveEquipment(item);
-        }
+        survivor.AddInReserveEquipment(new Bat());
+        survivor.AddInReserveEquipment(new Rockslinger());
+        survivor.AddInReserveEquipment(new Bat());
 
-        Assert.Equal(equipmentToAdd, survivor.InReserveEquipment);
+        Assert.Equal(expectedTotalEquipmentCount, survivor.InReserveEquipment.Count);
     }
 
     [Fact]
@@ -133,11 +126,11 @@ public class SurvivorTests
     {
         var survivor = survivorProvider.CreateValid();
 
-        survivor.AddInReserveEquipment("a");
-        survivor.AddInReserveEquipment("b");
-        survivor.AddInReserveEquipment("c");
+        survivor.AddInReserveEquipment(new Bat());
+        survivor.AddInReserveEquipment(new Rockslinger());
+        survivor.AddInReserveEquipment(new Bat());
 
-        Assert.Throws<EquipmentFullException>(() => survivor.AddInReserveEquipment("d"));
+        Assert.Throws<EquipmentFullException>(() => survivor.AddInReserveEquipment(new Rockslinger()));
     }
 
     [Theory]
@@ -148,7 +141,7 @@ public class SurvivorTests
     {
         var survivor = survivorProvider.CreateValid();
 
-        Assert.Throws<ArgumentException>(() => survivor.AddInReserveEquipment(equipmentName));
+        Assert.Throws<ArgumentException>(() => survivor.AddInReserveEquipment(new AdHocWeapon(equipmentName)));
     }
 
     [Theory]
@@ -159,9 +152,9 @@ public class SurvivorTests
     {
         var survivor = survivorProvider.CreateValid();
 
-        survivor.AddInReserveEquipment("a");
-        survivor.AddInReserveEquipment("b");
-        survivor.AddInReserveEquipment("c");
+        survivor.AddInReserveEquipment(new Bat());
+        survivor.AddInReserveEquipment(new Bat());
+        survivor.AddInReserveEquipment(new Bat());
 
         survivor.InflictWound(woundsToInflict);
 

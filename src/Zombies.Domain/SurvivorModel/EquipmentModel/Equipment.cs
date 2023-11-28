@@ -1,4 +1,5 @@
 ﻿using Zombies.Domain.SurvivorModel.EquipmentModel;
+using Zombies.Domain.WeaponsModel;
 
 namespace Zombies.Domain;
 
@@ -8,14 +9,14 @@ public partial class Survivor
     {
         private const int MaximumInHandEquipmentSize = 2;
 
-        private List<string> inHandEquipment;
+        private List<IWeapon> inHandEquipment;
 
-        private List<string> inReserveEquipment;
+        private List<IWeapon> inReserveEquipment;
 
         public Equipment()
         {
-            inHandEquipment = new List<string>();
-            inReserveEquipment = new List<string>();
+            inHandEquipment = new List<IWeapon>();
+            inReserveEquipment = new List<IWeapon>();
             CurrentMaximumInReserveEquipmentSize = 3;
         }
 
@@ -27,9 +28,9 @@ public partial class Survivor
 
         public int CurrentMaximumInReserveEquipmentSize { get; private set; }
 
-        public IReadOnlyCollection<string> InHandEquipment => inHandEquipment;
+        public IReadOnlyCollection<IWeapon> InHandEquipment => inHandEquipment;
 
-        public IReadOnlyCollection<string> InReserveEquipment => inReserveEquipment;
+        public IReadOnlyCollection<IWeapon> InReserveEquipment => inReserveEquipment;
 
         public void DecreaseInReserveCapactityByOne()
         {
@@ -38,12 +39,33 @@ public partial class Survivor
             RemoveLastInReserveItem();
         }
 
-        public void AddEquipment(EquipmentType type, string equipmentName)
+        public void AddEquipment(EquipmentType type, IWeapon weapon)
         {
-            if (string.IsNullOrWhiteSpace(equipmentName))
-                throw new ArgumentException(nameof(equipmentName), "The equipment name is required and cannot be empty");
+            if (weapon is null)
+                throw new ArgumentNullException(nameof(weapon), "The weapon is required and cannot be null");
 
-            AddEquipmentIfNotFull(type, equipmentName);
+            if (string.IsNullOrWhiteSpace(weapon.Name))
+                throw new ArgumentException(nameof(weapon), "The equipment name is required and cannot be empty");
+
+            AddEquipmentIfNotFull(type, weapon);
+        }
+
+        public void EnhanceMeleeWeapons(int damageCountIncrease)
+        {
+            var tempy = inReserveEquipment.Select(x => (x is IMeleeWeapon) ? new EnhancedWeapon(x, damageCountIncrease) : x);
+            inReserveEquipment = tempy.ToList();
+
+            tempy = inHandEquipment.Select(x => (x is IMeleeWeapon) ? new EnhancedWeapon(x, damageCountIncrease) : x);
+            inHandEquipment = tempy.ToList();
+        }
+
+        public void EnhanceRangedWeapons(int damageCountIncrease)
+        {
+            var tempy = inReserveEquipment.Select(x => (x is IRangeWeapon) ? new EnhancedWeapon(x, damageCountIncrease) : x);
+            inReserveEquipment = tempy.ToList();
+
+            tempy = inHandEquipment.Select(x => (x is IRangeWeapon) ? new EnhancedWeapon(x, damageCountIncrease) : x);
+            inHandEquipment = tempy.ToList();
         }
 
         private void DecreaseCurrentMaximumInReserveSize()
@@ -60,21 +82,21 @@ public partial class Survivor
             }
         }
 
-        private void AddEquipmentIfNotFull(EquipmentType type, string equipmentName)
+        private void AddEquipmentIfNotFull(EquipmentType type, IWeapon weapon)
         {
             if (type == EquipmentType.InHand)
             {
                 if (inHandEquipment.Count == MaximumInHandEquipmentSize)
                     throw new EquipmentFullException();
 
-                inHandEquipment.Add(equipmentName);
+                inHandEquipment.Add(weapon);
             }
             else
             {
                 if (inReserveEquipment.Count == CurrentMaximumInReserveEquipmentSize)
                     throw new EquipmentFullException();
 
-                inReserveEquipment.Add(equipmentName);
+                inReserveEquipment.Add(weapon);
             }
         }
     }

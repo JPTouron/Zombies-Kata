@@ -2,15 +2,16 @@ using AutoFixture;
 
 namespace Zombies.Domain.Tests;
 
+
 public static class SurvivorExtensions
 {
-    public static void IncreaseSurvivorLevel(this ISurvivor survivor1, ISurvivor.SurvivorLevel desiredSurvivorLevel)
+    public static void IncreaseSurvivorLevel(this ISurvivor survivor, ISurvivor.SurvivorLevel desiredSurvivorLevel)
     {
-        while (survivor1.Level < desiredSurvivorLevel)
+        while (survivor.Level < desiredSurvivorLevel)
         {
             var zombie = new Zombie();
             while (zombie.IsAlive)
-                survivor1.HitZombie(zombie);
+                survivor.HitZombie(zombie);
         }
     }
 

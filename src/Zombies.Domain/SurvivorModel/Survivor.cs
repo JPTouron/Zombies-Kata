@@ -1,4 +1,6 @@
-﻿namespace Zombies.Domain;
+﻿using Zombies.Domain.WeaponsModel;
+
+namespace Zombies.Domain;
 
 public delegate void SurvivorLeveledUpEventHandler(string survivorName, ISurvivor.SurvivorLevel newLevel);
 
@@ -10,6 +12,12 @@ public delegate void SurvivorAcquiredEquipmentEventHandler(string survivorName, 
 
 public interface ISurvivor
 {
+    public enum OrangeSkills
+    {
+        PlusOneDieRanged,
+        PlusOneDieMelee
+    }
+
     public enum SurvivorStatus
     {
         Alive,
@@ -32,9 +40,9 @@ public interface ISurvivor
 
     int RemainingActions { get; }
 
-    IReadOnlyCollection<string> InHandEquipment { get; }
+    IReadOnlyCollection<IWeapon> InHandEquipment { get; }
 
-    IReadOnlyCollection<string> InReserveEquipment { get; }
+    IReadOnlyCollection<IWeapon> InReserveEquipment { get; }
 
     int InReserveEquipmentCapacity { get; }
 
@@ -50,9 +58,12 @@ public interface ISurvivor
 
     void HitZombie(Zombie zombie);
 
-    void AddHandEquipment(string equipmentName);
+    //jp: this should only have a single slot (one weapon in hand only)
+    void AddHandEquipment(IWeapon weapon);
 
-    void AddInReserveEquipment(string equipmentName);
+    void AddInReserveEquipment(IWeapon weapon);
+
+    void UnlockOrangeSkill(OrangeSkills skillToUnlock);
 }
 
 internal interface ISurvivorNotifications
@@ -66,6 +77,22 @@ internal interface ISurvivorNotifications
     event SurvivorLeveledUpEventHandler OnSurvivorLeveledUp;
 }
 
+internal interface ISkill
+{
+    int Increase { get; }
+
+    string Name { get; }
+
+    string Description { get; }
+}
+
+public class Skill
+{
+}
+
+public class Skills
+{ }
+
 public partial class Survivor : ISurvivor, ISurvivorNotifications
 {
     private const int maxHealth = 2;
@@ -73,6 +100,10 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
     private Equipment equipment;
 
     private ISurvivor.SurvivorLevel previousLevel;
+
+    private int remainingActions = 0;
+
+    private IReadOnlyList<ISurvivor.OrangeSkills> orangeSkills;
 
     public event SurvivorAcquiredEquipmentEventHandler OnSurvivorAcquiredEquipment;
 
@@ -91,13 +122,15 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
         Wounds = 0;
         Experience = 0;
         ResetPreviousLevel();
-        RemainingActions = 3;
+        remainingActions = 3;
         equipment = new Equipment();
 
         OnSurvivorAcquiredEquipment = delegate { };
         OnSurvivorWounded = delegate { };
         OnSurvivorDied = delegate { };
         OnSurvivorLeveledUp = delegate { };
+
+        orangeSkills = new List<ISurvivor.OrangeSkills>();
     }
 
     public int Wounds { get; private set; }
@@ -106,11 +139,20 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
 
     public string Name { get; }
 
-    public int RemainingActions { get; }
+    public int RemainingActions
+    {
+        get
+        {
+            if (Level >= ISurvivor.SurvivorLevel.Yellow)
+                return remainingActions + 1;
+            else
+                return remainingActions;
+        }
+    }
 
-    public IReadOnlyCollection<string> InHandEquipment => equipment.InHandEquipment;
+    public IReadOnlyCollection<IWeapon> InHandEquipment => equipment.InHandEquipment;
 
-    public IReadOnlyCollection<string> InReserveEquipment => equipment.InReserveEquipment;
+    public IReadOnlyCollection<IWeapon> InReserveEquipment => equipment.InReserveEquipment;
 
     public int InReserveEquipmentCapacity => equipment.CurrentMaximumInReserveEquipmentSize;
 
@@ -142,21 +184,39 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
         return new Survivor(name);
     }
 
-    public void AddHandEquipment(string equipmentName)
+    public void AddHandEquipment(IWeapon weapon)
     {
-        equipment.AddEquipment(Equipment.EquipmentType.InHand, equipmentName);
-        OnSurvivorAcquiredEquipment(Name, equipmentName);
+        weapon = EnhanceWeaponIfApplicable(weapon);
+
+        equipment.AddEquipment(Equipment.EquipmentType.InHand, weapon);
+        OnSurvivorAcquiredEquipment(Name, weapon.Name);
     }
 
-    public void AddInReserveEquipment(string equipmentName)
+    public void AddInReserveEquipment(IWeapon weapon)
     {
-        equipment.AddEquipment(Equipment.EquipmentType.InReserve, equipmentName);
-        OnSurvivorAcquiredEquipment(Name, equipmentName);
+        weapon = EnhanceWeaponIfApplicable(weapon);
+
+        equipment.AddEquipment(Equipment.EquipmentType.InReserve, weapon);
+        OnSurvivorAcquiredEquipment(Name, weapon.Name);
     }
 
     public void HitZombie(Zombie zombie)
     {
-        zombie.InflictWound(1);
+        var woundsToInflict = 1;
+
+        if (InHandEquipment.Count > 0)
+            woundsToInflict = InHandEquipment.FirstOrDefault()?.Damage ?? woundsToInflict;
+        else
+            woundsToInflict = InReserveEquipment.FirstOrDefault()?.Damage ?? woundsToInflict;
+
+
+        //jp: the change for the skills related to damage and weapons should be around this hitting part,
+        //then we need to just update the wounds to inflict parameter according to the currently skills and damage values for the current survivor
+        //this is a way simpler approach instead of having to be aware of newly added weapons and existing weapons and such
+        //it could happen that at some point we want a detail of the weapons hit damage, and that could force us to change the strategy, but also,
+        //we can have an iface for the survivor to pass in the current attack skills related to weapons to calculate these values on the fly
+
+        zombie.InflictWound(woundsToInflict);
         IncreaseExperienceByOneIfZombieDead(zombie);
     }
 
@@ -172,6 +232,33 @@ public partial class Survivor : ISurvivor, ISurvivorNotifications
         {
             OnSurvivorDied(Name);
         }
+    }
+
+    public void UnlockOrangeSkill(ISurvivor.OrangeSkills skillToUnlock)
+    {
+        if (skillToUnlock == ISurvivor.OrangeSkills.PlusOneDieMelee)
+            equipment.EnhanceMeleeWeapons(1);
+        else
+            equipment.EnhanceRangedWeapons(1);
+
+        var tempy = orangeSkills.ToList();
+        tempy.Add(skillToUnlock);
+        orangeSkills = tempy;
+    }
+
+    private IWeapon EnhanceWeaponIfApplicable(IWeapon weapon)
+    {
+        if (orangeSkills.Count > 0 && orangeSkills.Count < 2)
+        {
+            if (orangeSkills.First() == ISurvivor.OrangeSkills.PlusOneDieMelee && weapon is IMeleeWeapon)
+                weapon = new EnhancedWeapon(weapon, 1);
+            else
+                weapon = new EnhancedWeapon(weapon, 1);
+        }
+        else if (orangeSkills.Count == 2)
+            weapon = new EnhancedWeapon(weapon, 1);
+
+        return weapon;
     }
 
     private bool HasRemainingHealth()

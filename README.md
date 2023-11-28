@@ -100,6 +100,17 @@ As the Game proceeds, Survivors get better.
 - A Survivor can restart a second time, unlocking their last Red skill at (43 + 43 + 43 = 129 total) experience.
 - The Game History notes that a Survivor has acquired a new Skill.
 
+|Level| Points| Skill Unlocked 							| potential skills (used/available slots)
+|:--- | ---:  | -:			 							| -:                  
+|B    | 0     | n/a			   							| Y(0/1) O(0/2) R(0/3)
+|Y    | 6     | +1 action	   							| Y(1/1) O(0/2) R(0/3)
+|O    | 18    | [+1 Die (Ranged)] [+1 Die (Melee)] 		| Y(1/1) O(1/2) R(0/3)
+|R    | 42    | [+1 Free Move Action] [Sniper] [Hoard]	| Y(1/1) O(1/2) R(1/3)
+|R    | 50    | n/a            							| Y(1/1) O(1/2) R(1/3)
+|R    | 61    | [+1 Die (Ranged)] [+1 Die (Melee)]      | Y(1/1) O(2/2) R(1/3)
+|R    | 86    | [+1 Free Move Action] [Sniper] [Hoard]	| Y(1/1) O(2/2) R(2/3)
+|R    | 129   | [+1 Free Move Action] [Sniper] [Hoard]  | Y(1/1) O(2/2) R(3/3)
+
 ## Notes
 
 How did you model interaction between the Survivors and the Game? Do Survivors have direct access to the Game in which they are playing? If so, can code in a Survivor's methods directly modify the state of other Survivors in the same game? Is that a potential problem?

@@ -193,7 +193,7 @@ public class GameTests
         game.AddSurvivor(expectedSurvivorName);
 
         var survivor = game.GetSurvivor(expectedSurvivorName);
-        survivor.AddHandEquipment(expectedEquipmentName);
+        survivor.AddHandEquipment(new AdHocWeapon(expectedEquipmentName));
 
         var history = game.History;
 
@@ -217,7 +217,7 @@ public class GameTests
         game.AddSurvivor(expectedSurvivorName);
 
         var survivor = game.GetSurvivor(expectedSurvivorName);
-        survivor.AddInReserveEquipment(expectedEquipmentName);
+        survivor.AddInReserveEquipment(new AdHocWeapon(expectedEquipmentName));
 
         var history = game.History;
 
